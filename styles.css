@@ -176,14 +176,10 @@ body {
     border-radius: 20px;
     padding: 40px;
     transition: all 0.3s;
-    cursor: pointer;
+    cursor: default; /* Changed from pointer to default for kiosk */
 }
 
-.activity-card-modern:hover {
-    transform: translateY(-5px);
-    border-color: #00d4ff;
-    box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
-}
+/* Hover effect disabled for kiosk mode - automatic animation instead */
 
 .activity-header {
     display: flex;
@@ -362,24 +358,7 @@ body {
 }
 
 .mode-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    background: #00d4ff;
-    color: #000;
-    padding: 15px 30px;
-    border-radius: 10px;
-    font-size: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.mode-toggle:hover {
-    background: #00b8e6;
+    display: none; /* Caché en mode kiosk */
 }
 
 /* Loading states */

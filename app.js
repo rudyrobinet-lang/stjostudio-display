@@ -141,6 +141,12 @@ async function loadActivities() {
     
     try {
         const response = await fetch(url);
+        
+        // Vérifier si la réponse est OK
+        if (!response.ok) {
+            throw new Error('Onglet Activites non trouvé');
+        }
+        
         const text = await response.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
         
@@ -168,10 +174,10 @@ async function loadActivities() {
             }
         });
         
-        console.log(`${activities.length} activités chargées`);
+        console.log(`${activities.length} activités chargées depuis Google Sheet`);
         
     } catch (error) {
-        console.error('Erreur chargement activités:', error);
+        console.warn('Onglet Activites non trouvé, utilisation des activités par défaut');
         // Utiliser des activités par défaut en cas d'erreur
         activities = getDefaultActivities();
     }
@@ -182,6 +188,12 @@ async function loadConfiguration() {
     
     try {
         const response = await fetch(url);
+        
+        // Vérifier si la réponse est OK
+        if (!response.ok) {
+            throw new Error('Onglet Configuration non trouvé');
+        }
+        
         const text = await response.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
         
@@ -209,8 +221,10 @@ async function loadConfiguration() {
             }
         });
         
+        console.log('Configuration personnalisée chargée');
+        
     } catch (error) {
-        console.warn('Configuration personnalisée non chargée, utilisation config par défaut');
+        console.warn('Onglet Configuration non trouvé, utilisation config par défaut');
     }
 }
 
@@ -334,7 +348,6 @@ function showGuestMode() {
     document.querySelector('.checkout-details').textContent = t.checkout;
     document.querySelector('.weather-sidebar h3').textContent = t.weather;
     document.querySelector('.section-title').textContent = t.activities;
-    document.getElementById('statusBadge').textContent = t.stayInProgress;
 }
 
 function showCountdownMode() {
@@ -385,10 +398,60 @@ function displayActivities() {
     if (activities.length > 4) {
         startActivityRotation();
     }
+    
+    // Démarrer l'animation de surbrillance automatique (mode kiosk)
+    setTimeout(() => {
+        startActivityHighlightAnimation();
+    }, 1000); // Attendre 1 seconde après le chargement
 }
 
 let activityRotationIndex = 4;
 let activityRotationInterval = null;
+let currentHighlightIndex = 0;
+let highlightInterval = null;
+
+// ==================== ANIMATION AUTOMATIQUE ACTIVITÉS ====================
+
+function startActivityHighlightAnimation() {
+    // Arrêter l'animation précédente si elle existe
+    if (highlightInterval) {
+        clearInterval(highlightInterval);
+    }
+    
+    const cards = document.querySelectorAll('.activity-card-modern');
+    
+    if (cards.length === 0) return;
+    
+    // Réinitialiser l'index
+    currentHighlightIndex = 0;
+    
+    // Fonction pour mettre en surbrillance une carte
+    const highlightCard = () => {
+        // Retirer la surbrillance de toutes les cartes
+        cards.forEach(card => {
+            card.style.transform = 'translateY(0)';
+            card.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+            card.style.boxShadow = 'none';
+        });
+        
+        // Ajouter la surbrillance à la carte actuelle
+        if (cards[currentHighlightIndex]) {
+            const currentCard = cards[currentHighlightIndex];
+            currentCard.style.transform = 'translateY(-5px)';
+            currentCard.style.borderColor = '#00d4ff';
+            currentCard.style.boxShadow = '0 10px 40px rgba(0, 212, 255, 0.3)';
+        }
+        
+        // Passer à la carte suivante
+        currentHighlightIndex = (currentHighlightIndex + 1) % cards.length;
+    };
+    
+    // Première surbrillance immédiate
+    highlightCard();
+    
+    // Puis continuer toutes les 3 secondes
+    highlightInterval = setInterval(highlightCard, 3000);
+}
 
 function startActivityRotation() {
     if (activityRotationInterval) {

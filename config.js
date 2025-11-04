@@ -14,12 +14,10 @@ const CONFIG = {
         "Mode calme à partir de 21h pour les voisins"
     ],
 
-    // ID de votre Google Sheet (VOUS DEVEZ REMPLACER CECI)
-    // Format: https://docs.google.com/spreadsheets/d/VOTRE_ID_ICI/edit
+    // ID de votre Google Sheet
     googleSheetId: "1NHDpR3YXOck6M2UMceHGX-qJPuA01g7JOoPxmAkfCS8",
 
-    // Clé API OpenWeatherMap (gratuite - vous devez créer un compte)
-    // https://openweathermap.org/api
+    // Clé API OpenWeatherMap
     weatherApiKey: "ba383d66b8a4087bb3bc608771e82f55",
 
     // Langue par défaut si non spécifiée dans la réservation
