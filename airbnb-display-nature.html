@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Airbnb Display - Style Nature</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1920px;
+            height: 1080px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #2d5016 0%, #1a3409 100%);
+            position: relative;
+        }
+
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(139, 195, 74, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 195, 74, 0.15) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            padding: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header-nature {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .leaf-decoration {
+            font-size: 64px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .welcome-text {
+            font-size: 56px;
+            color: #c8e6c9;
+            font-weight: 300;
+            font-style: italic;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .guest-name-nature {
+            font-size: 96px;
+            color: #fff;
+            font-weight: 700;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 40px;
+            flex: 1;
+            animation: fadeIn 1.2s ease;
+        }
+
+        .nature-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 45px;
+            border: 2px solid rgba(139, 195, 74, 0.3);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+            transition: all 0.3s;
+        }
+
+        .nature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(139, 195, 74, 0.6);
+            box-shadow: 0 20px 60px rgba(139, 195, 74, 0.2);
+        }
+
+        .card-icon {
+            font-size: 80px;
+            text-align: center;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .card-title {
+            font-size: 42px;
+            color: #c8e6c9;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+        }
+
+        .card-content {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 26px;
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        .weather-nature {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .temp-large {
+            font-size: 96px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+            margin: 20px 0;
+        }
+
+        .weather-desc {
+            font-size: 32px;
+            color: #c8e6c9;
+            margin-bottom: 20px;
+        }
+
+        .weather-extra {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 2;
+        }
+
+        .activities-nature {
+            grid-column: span 2;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .activity-item-nature {
+            background: rgba(139, 195, 74, 0.15);
+            padding: 25px 35px;
+            border-radius: 15px;
+            border-left: 5px solid #8bc34a;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .activity-item-nature:hover {
+            background: rgba(139, 195, 74, 0.25);
+            transform: translateX(15px);
+        }
+
+        .activity-emoji {
+            font-size: 48px;
+            margin-right: 25px;
+        }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-name {
+            font-size: 32px;
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .activity-info {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer-nature {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 40px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid rgba(139, 195, 74, 0.3);
+            animation: fadeInUp 1s ease;
+        }
+
+        .checkout-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .checkout-icon-nature {
+            font-size: 64px;
+        }
+
+        .checkout-info-nature {
+            color: #c8e6c9;
+        }
+
+        .checkout-label {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .checkout-date {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .rules-nature {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+        }
+
+        .rules-icon {
+            font-size: 48px;
+        }
+
+        /* Countdown Mode */
+        .countdown-mode-nature {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 80px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .countdown-mode-nature.active {
+            display: flex;
+        }
+
+        .countdown-decoration {
+            font-size: 96px;
+            margin-bottom: 40px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .countdown-title-nature {
+            font-size: 64px;
+            color: #c8e6c9;
+            margin-bottom: 80px;
+            text-align: center;
+            font-style: italic;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .countdown-boxes {
+            display: flex;
+            gap: 50px;
+            margin-bottom: 100px;
+        }
+
+        .countdown-box {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            padding: 60px 80px;
+            border: 3px solid rgba(139, 195, 74, 0.4);
+            text-align: center;
+            min-width: 250px;
+        }
+
+        .countdown-value {
+            font-size: 140px;
+            font-weight: 700;
+            color: #8bc34a;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+            line-height: 1;
+        }
+
+        .countdown-unit-label {
+            font-size: 38px;
+            color: #c8e6c9;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .next-guests-nature {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            padding: 60px 100px;
+            border: 3px solid rgba(139, 195, 74, 0.4);
+            text-align: center;
+        }
+
+        .next-guests-nature h3 {
+            font-size: 42px;
+            color: #c8e6c9;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .next-name {
+            font-size: 72px;
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .next-count {
+            font-size: 42px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #8bc34a;
+            color: #1a3409;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <button class="mode-toggle" onclick="toggleMode()">🔄 Changer de mode</button>
+
+    <!-- Mode Guest -->
+    <div class="container" id="guestModeNature">
+        <div class="header-nature">
+            <div class="leaf-decoration">🌿 🍃 🌿</div>
+            <div class="welcome-text">Bienvenue dans notre havre de paix</div>
+            <div class="guest-name-nature">Sophie Martin</div>
+        </div>
+
+        <div class="main-grid">
+            <div class="nature-card">
+                <div class="card-icon">☀️</div>
+                <div class="card-title">Météo du jour</div>
+                <div class="weather-nature">
+                    <div class="temp-large">24°</div>
+                    <div class="weather-desc">Ensoleillé</div>
+                    <div class="weather-extra">
+                        💧 Humidité: 65%<br>
+                        💨 Vent: 12 km/h<br>
+                        🌅 Lever: 07:15
+                    </div>
+                </div>
+            </div>
+
+            <div class="nature-card activities-nature">
+                <div class="card-icon">🎯</div>
+                <div class="card-title">Découvrez la région</div>
+                <div class="activity-list">
+                    <div class="activity-item-nature">
+                        <div class="activity-emoji">🍷</div>
+                        <div class="activity-details">
+                            <div class="activity-name">Dégustation de vins</div>
+                            <div class="activity-info">Cave du Domaine • 15h00 • 5 km</div>
+                        </div>
+                    </div>
+                    <div class="activity-item-nature">
+                        <div class="activity-emoji">🚴</div>
+                        <div class="activity-details">
+                            <div class="activity-name">Balade à vélo</div>
+                            <div class="activity-info">Circuit panoramique • 25 km • Départ 9h</div>
+                        </div>
+                    </div>
+                    <div class="activity-item-nature">
+                        <div class="activity-emoji">🎨</div>
+                        <div class="activity-details">
+                            <div class="activity-name">Marché artisanal</div>
+                            <div class="activity-info">Place du village • Jusqu'à 18h</div>
+                        </div>
+                    </div>
+                    <div class="activity-item-nature">
+                        <div class="activity-emoji">🏰</div>
+                        <div class="activity-details">
+                            <div class="activity-name">Château médiéval</div>
+                            <div class="activity-info">Visite guidée • 10h-17h • 8 km</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-nature">
+            <div class="checkout-section">
+                <div class="checkout-icon-nature">🗓️</div>
+                <div class="checkout-info-nature">
+                    <div class="checkout-label">Départ prévu le</div>
+                    <div class="checkout-date">Dimanche à 10h00</div>
+                </div>
+            </div>
+            <div class="rules-nature">
+                <div class="rules-icon">🌱</div>
+                <div>
+                    Respectons la nature ensemble • Calme après 22h<br>
+                    Tri sélectif • Économisons l'eau et l'énergie
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Mode -->
+    <div class="countdown-mode-nature" id="countdownModeNature">
+        <div class="countdown-decoration">🌿 🏡 🌿</div>
+        <div class="countdown-title-nature">Préparation pour nos prochains invités...</div>
+        
+        <div class="countdown-boxes">
+            <div class="countdown-box">
+                <div class="countdown-value" id="daysNature">02</div>
+                <div class="countdown-unit-label">Jours</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="hoursNature">14</div>
+                <div class="countdown-unit-label">Heures</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="minutesNature">30</div>
+                <div class="countdown-unit-label">Minutes</div>
+            </div>
+        </div>
+
+        <div class="next-guests-nature">
+            <h3>Prochains voyageurs attendus</h3>
+            <div class="next-name">Famille Dubois</div>
+            <div class="next-count">👨‍👩‍👧‍👦 Famille de 4 personnes</div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'guest';
+
+        function toggleMode() {
+            const guestMode = document.getElementById('guestModeNature');
+            const countdownMode = document.getElementById('countdownModeNature');
+            
+            if (currentMode === 'guest') {
+                guestMode.style.display = 'none';
+                countdownMode.classList.add('active');
+                currentMode = 'countdown';
+            } else {
+                guestMode.style.display = 'flex';
+                countdownMode.classList.remove('active');
+                currentMode = 'guest';
+            }
+        }
+
+        // Countdown timer
+        function updateCountdown() {
+            let totalMinutes = 62 * 60 + 30;
+            
+            setInterval(() => {
+                totalMinutes--;
+                
+                const days = Math.floor(totalMinutes / (24 * 60));
+                const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+                const minutes = totalMinutes % 60;
+                
+                document.getElementById('daysNature').textContent = String(days).padStart(2, '0');
+                document.getElementById('hoursNature').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutesNature').textContent = String(minutes).padStart(2, '0');
+            }, 60000);
+        }
+
+        updateCountdown();
+
+        // Activity rotation
+        const activities = [
+            {emoji: '🍷', name: 'Dégustation de vins', info: 'Cave du Domaine • 15h00 • 5 km'},
+            {emoji: '🚴', name: 'Balade à vélo', info: 'Circuit panoramique • 25 km • Départ 9h'},
+            {emoji: '🎨', name: 'Marché artisanal', info: 'Place du village • Jusqu\'à 18h'},
+            {emoji: '🏰', name: 'Château médiéval', info: 'Visite guidée • 10h-17h • 8 km'},
+            {emoji: '🎭', name: 'Théâtre en plein air', info: 'Place centrale • 20h30 • Gratuit'},
+            {emoji: '🌊', name: 'Baignade au lac', info: 'Plage surveillée • 10h-19h • 3 km'}
+        ];
+
+        let currentActivityIndex = 4;
+
+        setInterval(() => {
+            const activityItems = document.querySelectorAll('.activity-item-nature');
+            if (activityItems.length > 3) {
+                activityItems[3].style.opacity = '0';
+                setTimeout(() => {
+                    currentActivityIndex = (currentActivityIndex + 1) % activities.length;
+                    const activity = activities[currentActivityIndex];
+                    activityItems[3].querySelector('.activity-emoji').textContent = activity.emoji;
+                    activityItems[3].querySelector('.activity-name').textContent = activity.name;
+                    activityItems[3].querySelector('.activity-info').textContent = activity.info;
+                    activityItems[3].style.opacity = '1';
+                }, 500);
+            }
+        }, 6000);
+    </script>
+</body>
+</html>

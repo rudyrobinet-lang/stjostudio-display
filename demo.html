@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>St-Jo'Studio - DEMO (avec données de test)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 10px; z-index: 9999; font-size: 24px; text-align: center;">
+        <strong>⚠️ VERSION DEMO ⚠️</strong><br>
+        <span style="font-size: 18px;">
+            Ce fichier utilise des données de test.<br>
+            Utilisez index.html pour la version production.
+        </span>
+    </div>
+
+    <button class="mode-toggle" onclick="toggleMode()">🔄 Mode</button>
+
+    <!-- Mode Guest -->
+    <div class="container" id="guestView">
+        <div class="sidebar">
+            <div>
+                <div class="logo-section">
+                    <div class="logo">🏠</div>
+                    <div class="property-name">St-Jo'Studio</div>
+                </div>
+
+                <div class="welcome-section">
+                    <div class="welcome-label">Bienvenue</div>
+                    <div class="guest-name-modern">Sophie Martin</div>
+                    <div class="date-time" id="currentDateTime">Lun. 4 Nov. 2025 • 14:30</div>
+                </div>
+            </div>
+
+            <div class="weather-sidebar">
+                <h3>Météo</h3>
+                <div class="weather-main">
+                    <div class="weather-icon-sidebar">☀️</div>
+                    <div class="temp-sidebar">18°</div>
+                </div>
+                <div class="weather-details-sidebar">
+                    Ensoleillé<br>
+                    💧 Humidité: 55%<br>
+                    💨 Vent: 15 km/h
+                </div>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div class="header-bar">
+                <div class="date-display">Lundi 4 Novembre 2025</div>
+                <div class="status-badge">Séjour en cours</div>
+            </div>
+
+            <div class="activities-modern">
+                <h2 class="section-title">Activités et événements</h2>
+                <div class="activity-grid">
+                    <div class="activity-card-modern">
+                        <div class="activity-header">
+                            <div class="activity-icon-modern">🏢</div>
+                            <div class="activity-title">Salon BMR</div>
+                        </div>
+                        <div class="activity-description">
+                            Salon d'achat 2025 de BMR inc. • 4 km • Centre des congrès
+                        </div>
+                    </div>
+
+                    <div class="activity-card-modern">
+                        <div class="activity-header">
+                            <div class="activity-icon-modern">💪</div>
+                            <div class="activity-title">Physiothérapie 360</div>
+                        </div>
+                        <div class="activity-description">
+                            Salon des pro de la santé • 4.5 km • En face du Hilton
+                        </div>
+                    </div>
+
+                    <div class="activity-card-modern">
+                        <div class="activity-header">
+                            <div class="activity-icon-modern">🐾</div>
+                            <div class="activity-title">Pitou-Minou</div>
+                        </div>
+                        <div class="activity-description">
+                            Salon au poil • 2.3 km • De 9h à 16h
+                        </div>
+                    </div>
+
+                    <div class="activity-card-modern">
+                        <div class="activity-header">
+                            <div class="activity-icon-modern">🎭</div>
+                            <div class="activity-title">Vieux-Québec</div>
+                        </div>
+                        <div class="activity-description">
+                            Visite guidée historique • 3 km • Départ 10h & 14h
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bar">
+                <div class="checkout-modern">
+                    <div class="checkout-icon-modern">🗓️</div>
+                    <div>
+                        <div class="checkout-details">Check-out</div>
+                        <div class="checkout-time">Dimanche 11:00 AM</div>
+                    </div>
+                </div>
+                <div class="rules-modern">
+                    Vider les poubelles • Non-fumeur • Mode calme après 21h
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Mode -->
+    <div class="countdown-container" id="countdownView">
+        <div class="countdown-header">Prochains voyageurs</div>
+        <div class="countdown-display">
+            <div class="countdown-unit">
+                <div class="countdown-number">03</div>
+                <div class="countdown-label">Jours</div>
+            </div>
+            <div class="countdown-unit">
+                <div class="countdown-number">14</div>
+                <div class="countdown-label">Heures</div>
+            </div>
+            <div class="countdown-unit">
+                <div class="countdown-number">30</div>
+                <div class="countdown-label">Minutes</div>
+            </div>
+        </div>
+        <div class="next-booking">
+            <h3>Prochaine arrivée</h3>
+            <div class="next-guest-name">Famille Dubois</div>
+            <div class="next-guest-count">👥 4 personnes</div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'guest';
+
+        function toggleMode() {
+            const guestView = document.getElementById('guestView');
+            const countdownView = document.getElementById('countdownView');
+            
+            if (currentMode === 'guest') {
+                guestView.style.display = 'none';
+                countdownView.classList.add('active');
+                currentMode = 'countdown';
+            } else {
+                guestView.style.display = 'grid';
+                countdownView.classList.remove('active');
+                currentMode = 'guest';
+            }
+        }
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = now.toLocaleDateString('fr-FR', options);
+        }
+
+        setInterval(updateTime, 60000);
+        updateTime();
+    </script>
+</body>
+</html>

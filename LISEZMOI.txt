@@ -1,0 +1,213 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                  ST-JO'STUDIO DISPLAY - INFORMATION RAPIDE               ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+📦 PACKAGE COMPLET CRÉÉ POUR VOTRE AFFICHAGE AIRBNB
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 DÉMARRAGE RAPIDE (15 MINUTES)
+
+1. Ouvrez :        START_HERE.html (dans votre navigateur)
+   ou              QUICK_START.md
+
+2. Créez :         Google Sheet avec vos réservations
+
+3. Configurez :    config.js (ajoutez votre Google Sheet ID)
+
+4. Déployez :      Sur Vercel (gratuit)
+
+5. Utilisez :      L'URL dans votre player Yodek
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 FICHIERS IMPORTANTS
+
+✅ COMMENCEZ PAR CES FICHIERS :
+   • START_HERE.html         → Page de démarrage avec tous les liens
+   • QUICK_START.md          → Guide d'installation 15 minutes
+   • README.md               → Documentation complète
+
+📊 POUR GOOGLE SHEET :
+   • GOOGLE_SHEET_TEMPLATE.md → Instructions détaillées
+
+⚙️ CONFIGURATION :
+   • config.js               → ⚠️ VOUS DEVEZ ÉDITER CE FICHIER
+
+🎨 TESTER L'APPLICATION :
+   • demo.html               → Version de test avec données fictives
+
+📱 FICHIERS DE L'APPLICATION :
+   • index.html              → Page principale
+   • styles.css              → Styles visuels
+   • app.js                  → Logique JavaScript
+   • package.json            → Configuration npm
+   • vercel.json             → Configuration Vercel
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ CONFIGURATION REQUISE
+
+1. GOOGLE SHEET :
+   ✓ Créez un Google Sheet
+   ✓ 4 onglets : Reservations, Activites, Configuration, Instructions
+   ✓ Rendez-le public (Lecteur)
+   ✓ Copiez l'ID (dans l'URL)
+
+2. CONFIG.JS :
+   ✓ Ouvrez le fichier config.js
+   ✓ Ligne 21 : Remplacez par votre Google Sheet ID
+   ✓ Ligne 24 : (Optionnel) Ajoutez votre clé API météo
+
+3. VERCEL :
+   ✓ Créez un compte sur vercel.com
+   ✓ Connectez GitHub
+   ✓ Déployez le projet
+   ✓ Récupérez l'URL
+
+4. YODEK :
+   ✓ Ajoutez l'URL Vercel comme page web
+   ✓ Configuration : Plein écran, Paysage
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 FONCTIONNALITÉS
+
+✨ Détection automatique :
+   • Mode "Invité présent" ou "Countdown" selon les dates
+   • Multi-langue (FR, EN, ES)
+   • Rotation automatique des activités
+
+📊 Affichage personnalisé :
+   • Message de bienvenue avec nom de l'invité
+   • Météo en temps réel (Quebec)
+   • Activités locales (salons, événements)
+   • Règles de la maison
+   • Date de check-out (11:00 AM)
+
+🔄 Mise à jour automatique :
+   • Éditez votre Google Sheet
+   • Changements visibles en 5 minutes
+   • Pas besoin de redéployer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎨 STYLE ACTUEL
+
+Design choisi : Moderne & Minimaliste
+• Fond dark avec accents cyan/bleu
+• Layout type dashboard
+• Sidebar avec météo
+• Animations fluides
+
+Autres styles disponibles :
+• Élégant (violet/doré)  → airbnb-display-elegant.html
+• Nature (tons verts)    → airbnb-display-nature.html
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CHECKLIST D'INSTALLATION
+
+☐ Google Sheet créé (4 onglets)
+☐ Google Sheet rendu public
+☐ ID copié et ajouté dans config.js
+☐ (Optionnel) Clé API météo configurée
+☐ Fichiers uploadés sur GitHub
+☐ Projet déployé sur Vercel
+☐ URL testée dans navigateur
+☐ URL ajoutée dans Yodek
+☐ Test final sur écran
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 LIENS UTILES
+
+Google Sheets  : https://sheets.google.com
+GitHub         : https://github.com
+Vercel         : https://vercel.com
+OpenWeatherMap : https://openweathermap.org/api
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆘 DÉPANNAGE RAPIDE
+
+"Configuration incomplète" ?
+→ Vérifiez l'ID Google Sheet dans config.js
+
+Aucune donnée ?
+→ Vérifiez que le Google Sheet est public
+
+Météo non disponible ?
+→ Normal sans clé API (optionnel)
+
+Plus d'aide ?
+→ Consultez README.md section Dépannage
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 STRUCTURE DE VOTRE GOOGLE SHEET
+
+Onglet 1 : Reservations
+┌─────────────┬──────────┬──────────────┬──────────────┬────────┬──────────┐
+│ Date début  │ Date fin │ Nom voyageur │ Nb personnes │ Langue │ Statut   │
+├─────────────┼──────────┼──────────────┼──────────────┼────────┼──────────┤
+│ 2025-11-05  │ 2025-11-10│ Sophie Martin│      2       │   FR   │ Confirmé │
+└─────────────┴──────────┴──────────────┴──────────────┴────────┴──────────┘
+
+Onglet 2 : Activites
+┌───────┬───────────────────┬─────────────────┬──────────┬────────────┬───────┐
+│ Icône │ Nom activité      │ Description     │ Distance │ Horaires   │ Actif │
+├───────┼───────────────────┼─────────────────┼──────────┼────────────┼───────┤
+│  🏢   │ Salon BMR         │ Salon d'achat   │ 4 km     │ Centre     │  Oui  │
+└───────┴───────────────────┴─────────────────┴──────────┴────────────┴───────┘
+
+Onglet 3 : Configuration
+┌──────────────────┬──────────────────────────────────────────┐
+│ Paramètre        │ Valeur                                   │
+├──────────────────┼──────────────────────────────────────────┤
+│ Nom propriété    │ St-Jo'Studio                            │
+│ Ville météo      │ Quebec                                  │
+│ Heure check-out  │ 11:00 AM                                │
+│ Règle 1          │ Vider les poubelles en quittant        │
+└──────────────────┴──────────────────────────────────────────┘
+
+Onglet 4 : Instructions
+(Documentation pour remplir les autres onglets)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 CONSEILS
+
+• Testez d'abord avec demo.html avant de déployer
+• Gardez max 50 réservations dans le Google Sheet
+• Faites un backup mensuel de votre Google Sheet
+• Supprimez les anciennes réservations régulièrement
+• Activez/désactivez les activités selon les saisons
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 STATISTIQUES DU PACKAGE
+
+Total fichiers     : 16
+Documentation      : 4 fichiers
+Application        : 7 fichiers  
+Démo/Prototypes    : 4 fichiers
+Configuration      : 1 fichier (.gitignore)
+
+Taille totale      : ~127 KB
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 VOUS ÊTES PRÊT !
+
+Suivez simplement les étapes du QUICK_START.md
+ou ouvrez START_HERE.html dans votre navigateur.
+
+Bon séjour à vos invités ! 🏠✨
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Version : 1.0.0
+Propriété : St-Jo'Studio
+Ville : Quebec, Canada
+Date : Novembre 2025

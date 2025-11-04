@@ -1,0 +1,21 @@
+{
+  "name": "stjostudio-display",
+  "version": "1.0.0",
+  "description": "Application d'affichage digital signage pour St-Jo'Studio Airbnb",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve ."
+  },
+  "keywords": [
+    "airbnb",
+    "digital-signage",
+    "yodek",
+    "display"
+  ],
+  "author": "St-Jo'Studio",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

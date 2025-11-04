@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>St-Jo'Studio Display - Guide d'installation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 50px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section h2 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .card-description {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #764ba2;
+        }
+
+        .btn-secondary:hover {
+            background: #633d8a;
+        }
+
+        .demo-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .demo-section h3 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .checklist {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .checklist h3 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .checklist-item {
+            font-size: 18px;
+            color: #666;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-item::before {
+            content: "☐ ";
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 20px;
+            border-left: 5px solid #ffc107;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .highlight strong {
+            color: #856404;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            color: #666;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 St-Jo'Studio Display</h1>
+        <p class="subtitle">Application d'affichage digital signage pour votre Airbnb</p>
+
+        <div class="highlight">
+            <strong>⚡ Installation en 15 minutes</strong><br>
+            Suivez le guide de démarrage rapide pour mettre en ligne votre affichage rapidement !
+        </div>
+
+        <!-- Documentation -->
+        <div class="section">
+            <h2>📖 Documentation</h2>
+            <div class="cards">
+                <div class="card" onclick="window.open('QUICK_START.md', '_blank')">
+                    <div class="card-icon">🚀</div>
+                    <div class="card-title">Guide de démarrage rapide</div>
+                    <div class="card-description">
+                        Installation complète en 15 minutes. Parfait pour commencer rapidement !
+                    </div>
+                </div>
+
+                <div class="card" onclick="window.open('README.md', '_blank')">
+                    <div class="card-icon">📚</div>
+                    <div class="card-title">Documentation complète</div>
+                    <div class="card-description">
+                        Tout ce que vous devez savoir : configuration, personnalisation, dépannage.
+                    </div>
+                </div>
+
+                <div class="card" onclick="window.open('GOOGLE_SHEET_TEMPLATE.md', '_blank')">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Template Google Sheet</div>
+                    <div class="card-description">
+                        Instructions détaillées pour créer votre Google Sheet avec la bonne structure.
+                    </div>
+                </div>
+
+                <div class="card" onclick="window.open('PROJET_SUMMARY.md', '_blank')">
+                    <div class="card-icon">📋</div>
+                    <div class="card-title">Résumé du projet</div>
+                    <div class="card-description">
+                        Vue d'ensemble complète du projet, fonctionnalités et contenu du package.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Démonstration -->
+        <div class="section">
+            <div class="demo-section">
+                <h3>🎨 Testez l'affichage maintenant</h3>
+                <p style="font-size: 18px; margin-bottom: 30px;">
+                    Voyez le rendu final avec des données de test avant de configurer
+                </p>
+                <a href="demo.html" target="_blank" class="btn">Ouvrir la démo</a>
+            </div>
+        </div>
+
+        <!-- Prototypes de style -->
+        <div class="section">
+            <h2>🎨 Prototypes de styles disponibles</h2>
+            <div class="cards">
+                <div class="card" onclick="window.open('airbnb-display-modern.html', '_blank')">
+                    <div class="card-icon">🔵</div>
+                    <div class="card-title">Style Moderne</div>
+                    <div class="card-description">
+                        Design dark avec accents cyan. Style actuellement utilisé dans l'application.
+                    </div>
+                </div>
+
+                <div class="card" onclick="window.open('airbnb-display-elegant.html', '_blank')">
+                    <div class="card-icon">🟣</div>
+                    <div class="card-title">Style Élégant</div>
+                    <div class="card-description">
+                        Dégradés violet/doré luxueux. Parfait pour locations haut de gamme.
+                    </div>
+                </div>
+
+                <div class="card" onclick="window.open('airbnb-display-nature.html', '_blank')">
+                    <div class="card-icon">🟢</div>
+                    <div class="card-title">Style Nature</div>
+                    <div class="card-description">
+                        Tons verts naturels. Idéal pour chalets et maisons à la campagne.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fichiers du projet -->
+        <div class="section">
+            <h2>📁 Fichiers du projet</h2>
+            <p style="margin-bottom: 20px;">Tous les fichiers nécessaires pour déployer votre application :</p>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; font-family: monospace;">
+                <strong>Fichiers principaux :</strong><br>
+                • index.html - Page principale<br>
+                • styles.css - Styles visuels<br>
+                • app.js - Logique de l'application<br>
+                • <strong style="color: #dc3545;">config.js - ⚙️ À CONFIGURER</strong><br>
+                • package.json - Configuration npm<br>
+                • vercel.json - Configuration Vercel<br>
+                • .gitignore - Fichiers à ignorer<br><br>
+
+                <strong>Documentation :</strong><br>
+                • README.md - Documentation complète<br>
+                • QUICK_START.md - Guide rapide<br>
+                • GOOGLE_SHEET_TEMPLATE.md - Template Google Sheet<br>
+                • PROJET_SUMMARY.md - Résumé du projet<br><br>
+
+                <strong>Démo et prototypes :</strong><br>
+                • demo.html - Version de test<br>
+                • airbnb-display-*.html - Prototypes de styles
+            </div>
+        </div>
+
+        <!-- Checklist -->
+        <div class="section">
+            <div class="checklist">
+                <h3>✅ Checklist d'installation</h3>
+                <div class="checklist-item">Créer un Google Sheet avec 4 onglets</div>
+                <div class="checklist-item">Rendre le Google Sheet public (Lecteur)</div>
+                <div class="checklist-item">Copier l'ID du Google Sheet</div>
+                <div class="checklist-item">Éditer config.js avec l'ID Google Sheet</div>
+                <div class="checklist-item">(Optionnel) Configurer l'API météo</div>
+                <div class="checklist-item">Créer un compte GitHub</div>
+                <div class="checklist-item">Uploader les fichiers sur GitHub</div>
+                <div class="checklist-item">Créer un compte Vercel</div>
+                <div class="checklist-item">Déployer le projet sur Vercel</div>
+                <div class="checklist-item">Tester l'URL dans un navigateur</div>
+                <div class="checklist-item">Ajouter l'URL dans Yodek</div>
+                <div class="checklist-item">Tester sur l'écran final</div>
+            </div>
+        </div>
+
+        <!-- Liens utiles -->
+        <div class="section">
+            <h2>🔗 Liens utiles</h2>
+            <div style="background: #f5f5f5; padding: 30px; border-radius: 10px;">
+                <p style="margin-bottom: 15px;"><strong>Services nécessaires :</strong></p>
+                <p>📊 Google Sheets : <a href="https://sheets.google.com" target="_blank">sheets.google.com</a></p>
+                <p>🐙 GitHub : <a href="https://github.com" target="_blank">github.com</a></p>
+                <p>⚡ Vercel : <a href="https://vercel.com" target="_blank">vercel.com</a></p>
+                <p>🌤️ OpenWeatherMap (météo) : <a href="https://openweathermap.org/api" target="_blank">openweathermap.org/api</a></p>
+            </div>
+        </div>
+
+        <!-- Support -->
+        <div class="section">
+            <h2>🆘 Besoin d'aide ?</h2>
+            <p style="font-size: 18px; line-height: 1.8;">
+                • Consultez d'abord le <strong>README.md</strong> pour la documentation complète<br>
+                • Utilisez le <strong>QUICK_START.md</strong> pour une installation guidée<br>
+                • Vérifiez la section <strong>Dépannage</strong> du README<br>
+                • Ouvrez la console du navigateur (F12) pour voir les erreurs
+            </p>
+        </div>
+
+        <footer>
+            <p><strong>St-Jo'Studio Display</strong> - Version 1.0.0</p>
+            <p>Application d'affichage digital pour Airbnb - Quebec, Canada</p>
+            <p style="margin-top: 20px;">Bon séjour à vos invités ! 🏠✨</p>
+        </footer>
+    </div>
+</body>
+</html>
