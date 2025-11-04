@@ -86,11 +86,17 @@ async function loadReservations() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
+        console.log('Date du jour (today):', today);
+        
         currentReservation = null;
         nextReservation = null;
         
-        rows.forEach(row => {
+        rows.forEach((row, index) => {
             if (!row.c[0] || !row.c[1]) return; // Ignorer les lignes vides
+            
+            console.log(`--- Ligne ${index + 2} du Google Sheet ---`);
+            console.log('Valeur brute startDate:', row.c[0].v);
+            console.log('Valeur brute endDate:', row.c[1].v);
             
             const startDate = parseDate(row.c[0].v);
             const endDate = parseDate(row.c[1].v);
@@ -99,8 +105,16 @@ async function loadReservations() {
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
             
+            console.log('Après parsing - startDate:', startDate);
+            console.log('Après parsing - endDate:', endDate);
+            console.log('Guest:', guestName, '| Status:', status);
+            console.log('Comparaison: startDate <= today ?', startDate <= today);
+            console.log('Comparaison: endDate >= today ?', endDate >= today);
+            console.log('Comparaison: status confirmé ?', status.toLowerCase() === 'confirmé');
+            
             // Réservation en cours
             if (startDate <= today && endDate >= today && status.toLowerCase() === 'confirmé') {
+                console.log('✅ RÉSERVATION EN COURS TROUVÉE:', guestName);
                 currentReservation = {
                     startDate,
                     endDate,
@@ -115,6 +129,7 @@ async function loadReservations() {
             // Prochaine réservation
             if (startDate > today && status.toLowerCase() === 'confirmé') {
                 if (!nextReservation || startDate < nextReservation.startDate) {
+                    console.log('✅ PROCHAINE RÉSERVATION TROUVÉE:', guestName);
                     nextReservation = {
                         startDate,
                         endDate,
@@ -127,6 +142,7 @@ async function loadReservations() {
             }
         });
         
+        console.log('=== RÉSULTAT FINAL ===');
         console.log('Réservation actuelle:', currentReservation);
         console.log('Prochaine réservation:', nextReservation);
         
@@ -538,70 +554,42 @@ function updateTime() {
 // ==================== UTILITAIRES ====================
 
 function parseDate(dateString) {
-    // Gérer différents formats de date
-    if (dateString.includes('Date(')) {
-        // Format Google Sheets Date()
-        const timestamp = parseInt(dateString.match(/\d+/)[0]);
-        return new Date(timestamp);
-    }
+    console.log('📅 Parsing date:', dateString, '| Type:', typeof dateString);
     
     // Si c'est déjà un objet Date
     if (dateString instanceof Date) {
+        console.log('✅ Déjà un objet Date:', dateString);
         return dateString;
     }
     
+    // Convertir en string si ce n'est pas le cas
+    const str = String(dateString);
+    
+    // Format Google Sheets Date(timestamp)
+    if (str.includes('Date(')) {
+        const timestamp = parseInt(str.match(/\d+/)[0]);
+        const date = new Date(timestamp);
+        console.log('✅ Date from timestamp:', date);
+        return date;
+    }
+    
+    // Format numérique Google Sheets (nombre de jours depuis 1900)
+    if (!isNaN(dateString) && typeof dateString === 'number') {
+        // Google Sheets utilise le 30 décembre 1899 comme date de référence
+        const date = new Date((dateString - 25569) * 86400 * 1000);
+        console.log('✅ Date from Excel number:', date);
+        return date;
+    }
+    
     // Format JJ/MM/AAAA (français)
-    if (dateString.includes('/')) {
-        const parts = dateString.split('/');
+    if (str.includes('/')) {
+        const parts = str.split('/');
         if (parts.length === 3) {
             const day = parseInt(parts[0]);
             const month = parseInt(parts[1]) - 1; // Les mois commencent à 0
             const year = parseInt(parts[2]);
             
             // Vérifier si c'est un format valide
-            if (day <= 31 && month <= 11 && year > 2000) {
-                return new Date(year, month, day);
-            }
-        }
-    }
-    
-    // Format par défaut
-    return new Date(dateString);
-}
-
-function formatDate(date, lang = 'fr') {
-    const options = { weekday: 'long', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', options);
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function showError(message) {
-    console.error(message);
-    document.getElementById('guestName').textContent = 'Erreur';
-    document.getElementById('guestName').classList.add('error');
-}
-
-// ==================== BASCULEMENT MODE MANUEL ====================
-
-window.toggleMode = function() {
-    if (currentMode === 'guest') {
-        if (nextReservation) {
-            showCountdownMode();
-        }
-    } else {
-        showGuestMode();
-    }
-};
-
-// ==================== GESTION ERREURS ====================
-
-window.addEventListener('error', (e) => {
-    console.error('Erreur globale:', e.error);
-});
-
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('Promise rejetée:', e.reason);
-});
+            if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year > 2000) {
+                const date = new Date(year, month, day);
+                console.log('✅ Date from DD/MM/YYYY:', date);
