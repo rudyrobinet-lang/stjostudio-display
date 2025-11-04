@@ -308,3 +308,5 @@ Votre affichage St-Jo'Studio est maintenant opérationnel.
 **Mise à jour des données** : Éditez simplement votre Google Sheet, les changements apparaîtront automatiquement dans les 5 minutes.
 
 Bon séjour à vos invités ! 🏠✨
+
+Test webhook - 04/11/2025
