@@ -194,7 +194,6 @@ async function loadActivities() {
         
     } catch (error) {
         console.warn('Onglet Activites non trouvé, utilisation des activités par défaut');
-        // Utiliser des activités par défaut en cas d'erreur
         activities = getDefaultActivities();
     }
 }
@@ -205,7 +204,6 @@ async function loadConfiguration() {
     try {
         const response = await fetch(url);
         
-        // Vérifier si la réponse est OK
         if (!response.ok) {
             throw new Error('Onglet Configuration non trouvé');
         }
@@ -221,7 +219,6 @@ async function loadConfiguration() {
             const param = row.c[0].v;
             const value = row.c[1].v;
             
-            // Mettre à jour la configuration si nécessaire
             switch(param.toLowerCase()) {
                 case 'nom propriété':
                 case 'nom propriete':
@@ -302,7 +299,7 @@ function displayWeather(data) {
     const condition = data.weather[0].main;
     const description = data.weather[0].description;
     const humidity = data.main.humidity;
-    const windSpeed = Math.round(data.wind.speed * 3.6); // m/s to km/h
+    const windSpeed = Math.round(data.wind.speed * 3.6);
     
     const icon = CONFIG.weatherIcons[condition] || CONFIG.weatherIcons.default;
     
@@ -324,13 +321,12 @@ function displayDefaultWeather() {
 // ==================== MISE À JOUR AFFICHAGE ====================
 
 function updateDisplay() {
-    // Déterminer le mode (invité présent ou countdown)
     if (currentReservation) {
         showGuestMode();
     } else if (nextReservation) {
         showCountdownMode();
     } else {
-        showGuestMode(); // Mode par défaut
+        showGuestMode();
     }
 }
 
@@ -339,11 +335,9 @@ function showGuestMode() {
     document.getElementById('guestView').style.display = 'grid';
     document.getElementById('countdownView').classList.remove('active');
     
-    // Nom de l'invité
     const guestName = currentReservation ? currentReservation.guestName : 'Bienvenue';
     document.getElementById('guestName').textContent = guestName;
     
-    // Date de check-out
     if (currentReservation) {
         const checkoutDate = formatDate(currentReservation.endDate, currentLanguage);
         document.getElementById('checkoutTime').textContent = `${checkoutDate} ${CONFIG.property.checkoutTime}`;
@@ -351,14 +345,11 @@ function showGuestMode() {
         document.getElementById('checkoutTime').textContent = CONFIG.property.checkoutTime;
     }
     
-    // Règles (traduites)
     const rulesText = CONFIG.rules.join(' • ');
     document.getElementById('rulesText').textContent = rulesText;
     
-    // Activités
     displayActivities();
     
-    // Traductions
     const t = CONFIG.translations[currentLanguage];
     document.querySelector('.welcome-label').textContent = t.welcome;
     document.querySelector('.checkout-details').textContent = t.checkout;
@@ -375,9 +366,8 @@ function showCountdownMode() {
         document.getElementById('nextGuestName').textContent = nextReservation.guestName;
         document.getElementById('nextGuestCount').textContent = `👥 ${nextReservation.guestCount} ${CONFIG.translations[currentLanguage].people}`;
         
-        // Calculer et afficher le countdown
         updateCountdown();
-        setInterval(updateCountdown, 60000); // Mettre à jour chaque minute
+        setInterval(updateCountdown, 60000);
     }
 }
 
@@ -385,7 +375,6 @@ function displayActivities() {
     const grid = document.getElementById('activityGrid');
     grid.innerHTML = '';
     
-    // Afficher maximum 4 activités pour le layout
     const displayActivities = activities.slice(0, 4);
     
     displayActivities.forEach(activity => {
@@ -410,15 +399,13 @@ function displayActivities() {
         grid.appendChild(card);
     });
     
-    // Rotation automatique si plus de 4 activités
     if (activities.length > 4) {
         startActivityRotation();
     }
     
-    // Démarrer l'animation de surbrillance automatique (mode kiosk)
     setTimeout(() => {
         startActivityHighlightAnimation();
-    }, 1000); // Attendre 1 seconde après le chargement
+    }, 1000);
 }
 
 let activityRotationIndex = 4;
@@ -429,7 +416,6 @@ let highlightInterval = null;
 // ==================== ANIMATION AUTOMATIQUE ACTIVITÉS ====================
 
 function startActivityHighlightAnimation() {
-    // Arrêter l'animation précédente si elle existe
     if (highlightInterval) {
         clearInterval(highlightInterval);
     }
@@ -438,19 +424,15 @@ function startActivityHighlightAnimation() {
     
     if (cards.length === 0) return;
     
-    // Réinitialiser l'index
     currentHighlightIndex = 0;
     
-    // Fonction pour mettre en surbrillance une carte
     const highlightCard = () => {
-        // Retirer la surbrillance de toutes les cartes
         cards.forEach(card => {
             card.style.transform = 'translateY(0)';
             card.style.borderColor = 'rgba(0, 212, 255, 0.3)';
             card.style.boxShadow = 'none';
         });
         
-        // Ajouter la surbrillance à la carte actuelle
         if (cards[currentHighlightIndex]) {
             const currentCard = cards[currentHighlightIndex];
             currentCard.style.transform = 'translateY(-5px)';
@@ -458,14 +440,11 @@ function startActivityHighlightAnimation() {
             currentCard.style.boxShadow = '0 10px 40px rgba(0, 212, 255, 0.3)';
         }
         
-        // Passer à la carte suivante
         currentHighlightIndex = (currentHighlightIndex + 1) % cards.length;
     };
     
-    // Première surbrillance immédiate
     highlightCard();
     
-    // Puis continuer toutes les 3 secondes
     highlightInterval = setInterval(highlightCard, 3000);
 }
 
@@ -477,7 +456,6 @@ function startActivityRotation() {
     activityRotationInterval = setInterval(() => {
         const cards = document.querySelectorAll('.activity-card-modern');
         if (cards.length >= 4 && activities.length > 4) {
-            // Remplacer la dernière carte
             const lastCard = cards[3];
             lastCard.style.opacity = '0';
             
@@ -504,7 +482,7 @@ function startActivityRotation() {
                 activityRotationIndex++;
             }, 500);
         }
-    }, 8000); // Rotation toutes les 8 secondes
+    }, 8000);
 }
 
 function updateCountdown() {
@@ -515,7 +493,6 @@ function updateCountdown() {
     const diff = target - now;
     
     if (diff <= 0) {
-        // Recharger les données si la date est passée
         loadData();
         return;
     }
@@ -556,16 +533,13 @@ function updateTime() {
 function parseDate(dateString) {
     console.log('📅 Parsing date:', dateString, '| Type:', typeof dateString);
     
-    // Si c'est déjà un objet Date
     if (dateString instanceof Date) {
         console.log('✅ Déjà un objet Date:', dateString);
         return dateString;
     }
     
-    // Convertir en string si ce n'est pas le cas
     const str = String(dateString);
     
-    // Format Google Sheets Date(timestamp)
     if (str.includes('Date(')) {
         const timestamp = parseInt(str.match(/\d+/)[0]);
         const date = new Date(timestamp);
@@ -573,23 +547,71 @@ function parseDate(dateString) {
         return date;
     }
     
-    // Format numérique Google Sheets (nombre de jours depuis 1900)
     if (!isNaN(dateString) && typeof dateString === 'number') {
-        // Google Sheets utilise le 30 décembre 1899 comme date de référence
         const date = new Date((dateString - 25569) * 86400 * 1000);
         console.log('✅ Date from Excel number:', date);
         return date;
     }
     
-    // Format JJ/MM/AAAA (français)
     if (str.includes('/')) {
         const parts = str.split('/');
         if (parts.length === 3) {
             const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1; // Les mois commencent à 0
+            const month = parseInt(parts[1]) - 1;
             const year = parseInt(parts[2]);
             
-            // Vérifier si c'est un format valide
             if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year > 2000) {
                 const date = new Date(year, month, day);
                 console.log('✅ Date from DD/MM/YYYY:', date);
+                return date;
+            }
+        }
+    }
+    
+    if (str.includes('-')) {
+        const date = new Date(str);
+        console.log('✅ Date from ISO:', date);
+        return date;
+    }
+    
+    const date = new Date(str);
+    console.log('⚠️ Date from default parser:', date);
+    return date;
+}
+
+function formatDate(date, lang = 'fr') {
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', options);
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function showError(message) {
+    console.error(message);
+    document.getElementById('guestName').textContent = 'Erreur';
+    document.getElementById('guestName').classList.add('error');
+}
+
+// ==================== BASCULEMENT MODE MANUEL ====================
+
+window.toggleMode = function() {
+    if (currentMode === 'guest') {
+        if (nextReservation) {
+            showCountdownMode();
+        }
+    } else {
+        showGuestMode();
+    }
+};
+
+// ==================== GESTION ERREURS ====================
+
+window.addEventListener('error', (e) => {
+    console.error('Erreur globale:', e.error);
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+    console.error('Promise rejetée:', e.reason);
+});
