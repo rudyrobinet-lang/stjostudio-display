@@ -16,11 +16,11 @@ const CONFIG = {
 
     // ID de votre Google Sheet (VOUS DEVEZ REMPLACER CECI)
     // Format: https://docs.google.com/spreadsheets/d/VOTRE_ID_ICI/edit
-    googleSheetId: 1NHDpR3YXOck6M2UMceHGX-qJPuA01g7JOoPxmAkfCS8,
+    googleSheetId: "1NHDpR3YXOck6M2UMceHGX-qJPuA01g7JOoPxmAkfCS8",
 
     // Clé API OpenWeatherMap (gratuite - vous devez créer un compte)
     // https://openweathermap.org/api
-    weatherApiKey: ba383d66b8a4087bb3bc608771e82f55,
+    weatherApiKey: "ba383d66b8a4087bb3bc608771e82f55",
 
     // Langue par défaut si non spécifiée dans la réservation
     defaultLanguage: "fr",
