@@ -544,6 +544,28 @@ function parseDate(dateString) {
         const timestamp = parseInt(dateString.match(/\d+/)[0]);
         return new Date(timestamp);
     }
+    
+    // Si c'est déjà un objet Date
+    if (dateString instanceof Date) {
+        return dateString;
+    }
+    
+    // Format JJ/MM/AAAA (français)
+    if (dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // Les mois commencent à 0
+            const year = parseInt(parts[2]);
+            
+            // Vérifier si c'est un format valide
+            if (day <= 31 && month <= 11 && year > 2000) {
+                return new Date(year, month, day);
+            }
+        }
+    }
+    
+    // Format par défaut
     return new Date(dateString);
 }
 
