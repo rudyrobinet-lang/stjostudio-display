@@ -176,10 +176,8 @@ body {
     border-radius: 20px;
     padding: 40px;
     transition: all 0.3s;
-    cursor: default; /* Changed from pointer to default for kiosk */
+    cursor: default;
 }
-
-/* Hover effect disabled for kiosk mode - automatic animation instead */
 
 .activity-header {
     display: flex;
@@ -358,20 +356,17 @@ body {
 }
 
 .mode-toggle {
-    display: none; /* Caché en mode kiosk */
+    display: none;
 }
 
-/* Loading states */
 .loading {
     opacity: 0.5;
 }
 
-/* Error states */
 .error {
     color: #ff4444;
 }
 
-/* Responsive for different screen sizes (optional) */
 @media (max-width: 1920px) {
     body {
         width: 100vw;
