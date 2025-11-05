@@ -56,8 +56,8 @@ body {
     color: #666;
     font-weight: 300;
     margin-bottom: 20px;
-    text-transform: uppercase;
-    letter-spacing: 3px;
+    text-transform: none;
+    letter-spacing: 1px;
 }
 
 .guest-name-modern {
@@ -158,7 +158,7 @@ body {
 .section-title {
     font-size: 48px;
     font-weight: 700;
-    margin-bottom: 50px;
+    margin-bottom: 80px;
     color: #fff;
 }
 
@@ -217,13 +217,9 @@ body {
     align-items: center;
 }
 
-.checkout-icon-modern {
-    font-size: 48px;
-    margin-right: 20px;
-}
-
 .checkout-details {
-    font-size: 28px;
+    font-size: 24px;
+    color: #888;
 }
 
 .checkout-time {
