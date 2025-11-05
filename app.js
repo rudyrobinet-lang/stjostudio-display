@@ -1,5 +1,5 @@
 // Application principale pour St-Jo'Studio Display
-// VERSION ADAPTÉE pour votre Google Sheet avec colonnes en anglais
+// VERSION AMÉLIORÉE avec gestion de l'heure de checkout
 
 let currentMode = 'guest';
 let currentReservation = null;
@@ -11,6 +11,7 @@ let currentLanguage = CONFIG.defaultLanguage;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('St-Jo\'Studio Display - Initialisation...');
+    console.log('Heure actuelle:', new Date().toLocaleString('fr-FR'));
     
     // Vérifier la configuration
     if (!validateConfig()) {
@@ -73,6 +74,24 @@ async function loadData() {
     }
 }
 
+function parseCheckoutTime(timeString) {
+    // Parse "11:00 AM" ou "11:00" et retourne l'heure en format 24h
+    const match = timeString.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+    if (!match) return 11; // Par défaut 11h00
+    
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3]?.toUpperCase();
+    
+    if (period === 'PM' && hours !== 12) {
+        hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+        hours = 0;
+    }
+    
+    return hours + (minutes / 60);
+}
+
 async function loadReservations() {
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.googleSheetId}/gviz/tq?tqx=out:json&sheet=Reservations`;
     
@@ -84,33 +103,77 @@ async function loadReservations() {
         const json = JSON.parse(text.substring(47).slice(0, -2));
         
         const rows = json.table.rows;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Minuit aujourd'hui
+        const currentHour = now.getHours() + (now.getMinutes() / 60); // Heure actuelle en décimal
+        
+        console.log('Date du jour (minuit):', today.toLocaleDateString('fr-FR'));
+        console.log('Heure actuelle:', now.toLocaleTimeString('fr-FR'));
+        console.log('Heure décimale:', currentHour.toFixed(2));
+        
+        // Parser l'heure de checkout depuis config
+        const checkoutHour = parseCheckoutTime(CONFIG.property.checkoutTime);
+        console.log('Heure de checkout configurée:', CONFIG.property.checkoutTime, '→', checkoutHour.toFixed(2));
         
         currentReservation = null;
         nextReservation = null;
         
-        rows.forEach(row => {
+        rows.forEach((row, index) => {
             if (!row.c[0] || !row.c[1]) return; // Ignorer les lignes vides
             
-            // ADAPTATION : Les colonnes sont dans cet ordre :
-            // A: Checkin, B: Checkout, C: Name, D: Nb personnes, E: Langue, F: Statut
-            const startDate = parseFrenchDate(row.c[0].f || row.c[0].v); // Utiliser .f pour le format affiché
+            // Les colonnes sont : Checkin, Checkout, Name, Nb personnes, Langue, Statut
+            const startDate = parseFrenchDate(row.c[0].f || row.c[0].v);
             const endDate = parseFrenchDate(row.c[1].f || row.c[1].v);
             const guestName = row.c[2]?.v || 'Invité';
             const guestCount = row.c[3]?.v || 1;
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
             
-            console.log('Réservation trouvée:', {
-                startDate: startDate.toLocaleDateString('fr-FR'),
-                endDate: endDate.toLocaleDateString('fr-FR'),
-                guestName,
-                today: today.toLocaleDateString('fr-FR')
-            });
+            console.log(`\n--- Réservation ligne ${index + 2} ---`);
+            console.log('  Nom:', guestName);
+            console.log('  Check-in:', startDate.toLocaleDateString('fr-FR'));
+            console.log('  Check-out:', endDate.toLocaleDateString('fr-FR'));
+            console.log('  Statut:', status);
             
-            // Réservation en cours
-            if (startDate <= today && endDate >= today && status.toLowerCase() === 'confirmé') {
+            // ========================================
+            // LOGIQUE AMÉLIORÉE DE DÉTECTION
+            // ========================================
+            
+            const isConfirmed = status.toLowerCase() === 'confirmé';
+            
+            // 1. L'invité est-il arrivé ? (startDate <= aujourd'hui)
+            const hasArrived = startDate <= today;
+            
+            // 2. L'invité est-il encore là ?
+            // - Si endDate > aujourd'hui → OUI (part demain ou plus tard)
+            // - Si endDate = aujourd'hui → Dépend de l'heure
+            //   * Si heure actuelle < heure checkout → OUI (encore là)
+            //   * Si heure actuelle >= heure checkout → NON (déjà parti)
+            const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+            
+            let isStillPresent = false;
+            if (endDateOnly > today) {
+                // Part demain ou plus tard
+                isStillPresent = true;
+                console.log('  → Part après aujourd\'hui: OUI, encore présent');
+            } else if (endDateOnly.getTime() === today.getTime()) {
+                // Part aujourd'hui - vérifier l'heure
+                if (currentHour < checkoutHour) {
+                    isStillPresent = true;
+                    console.log(`  → Part aujourd'hui, mais avant checkout (${currentHour.toFixed(2)} < ${checkoutHour}): OUI, encore présent`);
+                } else {
+                    isStillPresent = false;
+                    console.log(`  → Part aujourd'hui, après checkout (${currentHour.toFixed(2)} >= ${checkoutHour}): NON, déjà parti`);
+                }
+            } else {
+                // Parti hier ou avant
+                isStillPresent = false;
+                console.log('  → Parti avant aujourd\'hui: NON');
+            }
+            
+            // Réservation EN COURS : arrivé + encore présent + confirmé
+            if (hasArrived && isStillPresent && isConfirmed) {
+                console.log('  ✅ RÉSERVATION EN COURS');
                 currentReservation = {
                     startDate,
                     endDate,
@@ -120,12 +183,12 @@ async function loadReservations() {
                     status
                 };
                 currentLanguage = language;
-                console.log('✅ Réservation en cours détectée:', guestName);
             }
             
-            // Prochaine réservation
-            if (startDate > today && status.toLowerCase() === 'confirmé') {
+            // Prochaine réservation : arrive dans le futur + confirmé
+            if (startDate > today && isConfirmed) {
                 if (!nextReservation || startDate < nextReservation.startDate) {
+                    console.log('  🔜 Prochaine réservation');
                     nextReservation = {
                         startDate,
                         endDate,
@@ -136,10 +199,19 @@ async function loadReservations() {
                     };
                 }
             }
+            
+            // CAS SPÉCIAL : Arrive aujourd'hui mais pas encore checkin
+            // Si startDate = aujourd'hui ET heure < checkin (15h par exemple)
+            // On pourrait considérer que c'est encore une "prochaine réservation"
+            // Mais pour simplifier, on considère qu'à partir de minuit, l'invité "arrive aujourd'hui"
         });
         
+        console.log('\n========================================');
+        console.log('📊 RÉSULTAT FINAL:');
         console.log('Réservation actuelle:', currentReservation);
         console.log('Prochaine réservation:', nextReservation);
+        console.log('Mode qui sera affiché:', currentReservation ? 'GUEST' : (nextReservation ? 'COUNTDOWN' : 'GUEST par défaut'));
+        console.log('========================================\n');
         
     } catch (error) {
         console.error('Erreur chargement réservations:', error);
@@ -153,7 +225,6 @@ async function loadActivities() {
     try {
         const response = await fetch(url);
         
-        // Vérifier si la réponse est OK
         if (!response.ok) {
             throw new Error('Onglet Activites non trouvé');
         }
@@ -165,7 +236,7 @@ async function loadActivities() {
         activities = [];
         
         rows.forEach(row => {
-            if (!row.c[1]) return; // Ignorer les lignes vides
+            if (!row.c[1]) return;
             
             const icon = row.c[0]?.v || '🎯';
             const name = row.c[1]?.v || '';
@@ -185,11 +256,10 @@ async function loadActivities() {
             }
         });
         
-        console.log(`${activities.length} activités chargées depuis Google Sheet`);
+        console.log(`${activities.length} activités chargées`);
         
     } catch (error) {
         console.warn('Onglet Activites non trouvé, utilisation des activités par défaut');
-        // Utiliser des activités par défaut en cas d'erreur
         activities = getDefaultActivities();
     }
 }
@@ -200,7 +270,6 @@ async function loadConfiguration() {
     try {
         const response = await fetch(url);
         
-        // Vérifier si la réponse est OK
         if (!response.ok) {
             throw new Error('Onglet Configuration non trouvé');
         }
@@ -216,7 +285,6 @@ async function loadConfiguration() {
             const param = row.c[0].v;
             const value = row.c[1].v;
             
-            // Mettre à jour la configuration si nécessaire
             switch(param.toLowerCase()) {
                 case 'nom propriété':
                 case 'nom propriete':
@@ -297,7 +365,7 @@ function displayWeather(data) {
     const condition = data.weather[0].main;
     const description = data.weather[0].description;
     const humidity = data.main.humidity;
-    const windSpeed = Math.round(data.wind.speed * 3.6); // m/s to km/h
+    const windSpeed = Math.round(data.wind.speed * 3.6);
     
     const icon = CONFIG.weatherIcons[condition] || CONFIG.weatherIcons.default;
     
@@ -319,13 +387,20 @@ function displayDefaultWeather() {
 // ==================== MISE À JOUR AFFICHAGE ====================
 
 function updateDisplay() {
+    console.log('\n🖥️  Mise à jour de l'affichage...');
+    console.log('currentReservation:', currentReservation);
+    console.log('nextReservation:', nextReservation);
+    
     // Déterminer le mode (invité présent ou countdown)
     if (currentReservation) {
+        console.log('→ Mode GUEST (invité présent)');
         showGuestMode();
     } else if (nextReservation) {
+        console.log('→ Mode COUNTDOWN (prochains invités)');
         showCountdownMode();
     } else {
-        showGuestMode(); // Mode par défaut
+        console.log('→ Mode GUEST par défaut (aucune réservation)');
+        showGuestMode();
     }
 }
 
@@ -346,7 +421,7 @@ function showGuestMode() {
         document.getElementById('checkoutTime').textContent = CONFIG.property.checkoutTime;
     }
     
-    // Règles (traduites)
+    // Règles
     const rulesText = CONFIG.rules.join(' • ');
     document.getElementById('rulesText').textContent = rulesText;
     
@@ -372,7 +447,7 @@ function showCountdownMode() {
         
         // Calculer et afficher le countdown
         updateCountdown();
-        setInterval(updateCountdown, 60000); // Mettre à jour chaque minute
+        setInterval(updateCountdown, 60000);
     }
 }
 
@@ -380,7 +455,6 @@ function displayActivities() {
     const grid = document.getElementById('activityGrid');
     grid.innerHTML = '';
     
-    // Afficher maximum 4 activités pour le layout
     const displayActivities = activities.slice(0, 4);
     
     displayActivities.forEach(activity => {
@@ -405,12 +479,10 @@ function displayActivities() {
         grid.appendChild(card);
     });
     
-    // Rotation automatique si plus de 4 activités
     if (activities.length > 4) {
         startActivityRotation();
     }
     
-    // Démarrer l'animation de surbrillance automatique (mode kiosk)
     setTimeout(() => {
         startActivityHighlightAnimation();
     }, 1000);
@@ -536,14 +608,11 @@ function updateTime() {
 // ==================== UTILITAIRES ====================
 
 function parseFrenchDate(dateString) {
-    console.log('Parsing date:', dateString);
-    
-    // Si c'est déjà un objet Date
     if (dateString instanceof Date) {
         return dateString;
     }
     
-    // Format Google Sheets Date() - ex: Date(2025, 10, 5)
+    // Format Google Sheets Date()
     if (typeof dateString === 'string' && dateString.includes('Date(')) {
         const match = dateString.match(/Date\((\d+),\s*(\d+),\s*(\d+)\)/);
         if (match) {
@@ -551,18 +620,17 @@ function parseFrenchDate(dateString) {
         }
     }
     
-    // Format JJ/MM/AAAA - ex: 05/11/2025
+    // Format JJ/MM/AAAA
     if (typeof dateString === 'string' && dateString.includes('/')) {
         const parts = dateString.split('/');
         if (parts.length === 3) {
             const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1; // Mois commence à 0 en JavaScript
+            const month = parseInt(parts[1]) - 1;
             const year = parseInt(parts[2]);
             return new Date(year, month, day);
         }
     }
     
-    // Format ISO ou autre
     return new Date(dateString);
 }
 
