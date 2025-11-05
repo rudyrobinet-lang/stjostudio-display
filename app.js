@@ -1,4 +1,5 @@
 // Application principale pour St-Jo'Studio Display
+// VERSION ADAPTÉE pour votre Google Sheet avec colonnes en anglais
 
 let currentMode = 'guest';
 let currentReservation = null;
@@ -92,12 +93,21 @@ async function loadReservations() {
         rows.forEach(row => {
             if (!row.c[0] || !row.c[1]) return; // Ignorer les lignes vides
             
-            const startDate = parseDate(row.c[0].v);
-            const endDate = parseDate(row.c[1].v);
+            // ADAPTATION : Les colonnes sont dans cet ordre :
+            // A: Checkin, B: Checkout, C: Name, D: Nb personnes, E: Langue, F: Statut
+            const startDate = parseFrenchDate(row.c[0].f || row.c[0].v); // Utiliser .f pour le format affiché
+            const endDate = parseFrenchDate(row.c[1].f || row.c[1].v);
             const guestName = row.c[2]?.v || 'Invité';
             const guestCount = row.c[3]?.v || 1;
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
+            
+            console.log('Réservation trouvée:', {
+                startDate: startDate.toLocaleDateString('fr-FR'),
+                endDate: endDate.toLocaleDateString('fr-FR'),
+                guestName,
+                today: today.toLocaleDateString('fr-FR')
+            });
             
             // Réservation en cours
             if (startDate <= today && endDate >= today && status.toLowerCase() === 'confirmé') {
@@ -110,6 +120,7 @@ async function loadReservations() {
                     status
                 };
                 currentLanguage = language;
+                console.log('✅ Réservation en cours détectée:', guestName);
             }
             
             // Prochaine réservation
@@ -402,7 +413,7 @@ function displayActivities() {
     // Démarrer l'animation de surbrillance automatique (mode kiosk)
     setTimeout(() => {
         startActivityHighlightAnimation();
-    }, 1000); // Attendre 1 seconde après le chargement
+    }, 1000);
 }
 
 let activityRotationIndex = 4;
@@ -410,10 +421,7 @@ let activityRotationInterval = null;
 let currentHighlightIndex = 0;
 let highlightInterval = null;
 
-// ==================== ANIMATION AUTOMATIQUE ACTIVITÉS ====================
-
 function startActivityHighlightAnimation() {
-    // Arrêter l'animation précédente si elle existe
     if (highlightInterval) {
         clearInterval(highlightInterval);
     }
@@ -422,19 +430,15 @@ function startActivityHighlightAnimation() {
     
     if (cards.length === 0) return;
     
-    // Réinitialiser l'index
     currentHighlightIndex = 0;
     
-    // Fonction pour mettre en surbrillance une carte
     const highlightCard = () => {
-        // Retirer la surbrillance de toutes les cartes
         cards.forEach(card => {
             card.style.transform = 'translateY(0)';
             card.style.borderColor = 'rgba(0, 212, 255, 0.3)';
             card.style.boxShadow = 'none';
         });
         
-        // Ajouter la surbrillance à la carte actuelle
         if (cards[currentHighlightIndex]) {
             const currentCard = cards[currentHighlightIndex];
             currentCard.style.transform = 'translateY(-5px)';
@@ -442,14 +446,10 @@ function startActivityHighlightAnimation() {
             currentCard.style.boxShadow = '0 10px 40px rgba(0, 212, 255, 0.3)';
         }
         
-        // Passer à la carte suivante
         currentHighlightIndex = (currentHighlightIndex + 1) % cards.length;
     };
     
-    // Première surbrillance immédiate
     highlightCard();
-    
-    // Puis continuer toutes les 3 secondes
     highlightInterval = setInterval(highlightCard, 3000);
 }
 
@@ -461,7 +461,6 @@ function startActivityRotation() {
     activityRotationInterval = setInterval(() => {
         const cards = document.querySelectorAll('.activity-card-modern');
         if (cards.length >= 4 && activities.length > 4) {
-            // Remplacer la dernière carte
             const lastCard = cards[3];
             lastCard.style.opacity = '0';
             
@@ -488,7 +487,7 @@ function startActivityRotation() {
                 activityRotationIndex++;
             }, 500);
         }
-    }, 8000); // Rotation toutes les 8 secondes
+    }, 8000);
 }
 
 function updateCountdown() {
@@ -499,7 +498,6 @@ function updateCountdown() {
     const diff = target - now;
     
     if (diff <= 0) {
-        // Recharger les données si la date est passée
         loadData();
         return;
     }
@@ -537,13 +535,34 @@ function updateTime() {
 
 // ==================== UTILITAIRES ====================
 
-function parseDate(dateString) {
-    // Gérer différents formats de date
-    if (dateString.includes('Date(')) {
-        // Format Google Sheets Date()
-        const timestamp = parseInt(dateString.match(/\d+/)[0]);
-        return new Date(timestamp);
+function parseFrenchDate(dateString) {
+    console.log('Parsing date:', dateString);
+    
+    // Si c'est déjà un objet Date
+    if (dateString instanceof Date) {
+        return dateString;
     }
+    
+    // Format Google Sheets Date() - ex: Date(2025, 10, 5)
+    if (typeof dateString === 'string' && dateString.includes('Date(')) {
+        const match = dateString.match(/Date\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (match) {
+            return new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
+        }
+    }
+    
+    // Format JJ/MM/AAAA - ex: 05/11/2025
+    if (typeof dateString === 'string' && dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // Mois commence à 0 en JavaScript
+            const year = parseInt(parts[2]);
+            return new Date(year, month, day);
+        }
+    }
+    
+    // Format ISO ou autre
     return new Date(dateString);
 }
 
