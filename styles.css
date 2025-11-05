@@ -176,8 +176,10 @@ body {
     border-radius: 20px;
     padding: 40px;
     transition: all 0.3s;
-    cursor: default;
+    cursor: default; /* Changed from pointer to default for kiosk */
 }
+
+/* Hover effect disabled for kiosk mode - automatic animation instead */
 
 .activity-header {
     display: flex;
@@ -356,7 +358,7 @@ body {
 }
 
 .mode-toggle {
-    display: none;
+    display: none; /* Caché en mode kiosk */
 }
 
 /* Loading states */
