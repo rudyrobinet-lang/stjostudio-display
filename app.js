@@ -235,7 +235,10 @@ async function loadActivities() {
         const json = JSON.parse(text.substring(47).slice(0, -2));
         
         activities = [];
-        json.table.rows.forEach(row => {
+        json.table.rows.forEach((row, index) => {
+            // Ignorer la première ligne (en-tête)
+            if (index === 0) return;
+            
             if (!row.c[1]) return;
             
             const icon = row.c[0]?.v || '🎯';
@@ -365,6 +368,18 @@ function showGuestMode() {
     console.log('💁 Affichage du nom:', guestName);
     document.getElementById('guestName').textContent = guestName;
     
+    // Afficher uniquement l'heure sous le nom
+    if (currentReservation) {
+        const checkoutTime = currentReservation.checkoutHour ? 
+            formatHour(currentReservation.checkoutHour) : CONFIG.property.checkoutTime;
+        document.getElementById('currentDateTime').textContent = checkoutTime;
+    } else {
+        const now = new Date();
+        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+        document.getElementById('currentDateTime').textContent = now.toLocaleTimeString('fr-FR', timeOptions);
+    }
+    
+    // Date de checkout dans le footer
     if (currentReservation) {
         const checkoutDate = formatDate(currentReservation.endDate, currentLanguage);
         const checkoutTime = currentReservation.checkoutHour ? 
@@ -530,12 +545,13 @@ function updateCountdown() {
 
 function updateTime() {
     const now = new Date();
-    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     
-    document.getElementById('currentDateTime').textContent = now.toLocaleDateString('fr-FR', options);
+    // Mettre à jour uniquement la date complète dans le header
     document.getElementById('fullDate').textContent = now.toLocaleDateString('fr-FR', { 
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
     });
+    
+    // NE PAS mettre à jour currentDateTime - il est géré par showGuestMode()
 }
 
 // ==================== UTILITAIRES ====================
