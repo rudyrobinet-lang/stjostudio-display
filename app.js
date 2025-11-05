@@ -73,10 +73,12 @@ async function loadData() {
 
 function parseCheckoutTime(timeString) {
     // Parse "11:00 AM", "16:00", etc. et retourne l'heure en format 24h décimal
+    if (!timeString) return null; // Retourne null si la chaîne est vide ou nulle
+    
     const match = timeString.match(/(\d+):(\d+)\s*(AM|PM)?/i);
     if (!match) {
-        console.warn('Format d\'heure invalide:', timeString, '- utilisation de 11h00 par défaut');
-        return 11;
+        console.warn('Format d\'heure invalide:', timeString, '- ne peut pas être parsé');
+        return null;
     }
     
     let hours = parseInt(match[1]);
@@ -114,8 +116,8 @@ async function loadReservations() {
         console.log('📅 Date du jour (minuit):', today.toLocaleDateString('fr-FR'));
         console.log('⏰ Heure actuelle:', now.toLocaleTimeString('fr-FR'), `(décimal: ${currentHour.toFixed(2)})`);
         
-        // Parser l'heure de checkout depuis config
-        const checkoutHour = parseCheckoutTime(CONFIG.property.checkoutTime);
+        // Parser l'heure de checkout par défaut depuis config
+        const defaultCheckoutHourDecimal = parseCheckoutTime(CONFIG.property.checkoutTime);
         
         currentReservation = null;
         nextReservation = null;
@@ -123,33 +125,38 @@ async function loadReservations() {
         rows.forEach((row, index) => {
             if (!row.c[0] || !row.c[1]) return; // Ignorer les lignes vides
             
-            console.log(`\n--- Réservation ligne ${index + 2} ---`);
-            console.log('📊 Données brutes:');
-            console.log('  Checkin (row.c[0].v):', row.c[0].v);
-            console.log('  Checkout (row.c[1].v):', row.c[1].v);
-            
+            // --- PARSING DES DONNÉES DE LA LIGNE ---
             const startDate = parseDate(row.c[0].v);
             const endDate = parseDate(row.c[1].v);
             const guestName = row.c[2]?.v || 'Invité';
             const guestCount = row.c[3]?.v || 1;
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
+            const specificCheckoutTime = row.c[6]?.v || null; // <--- NOUVEAU: Colonne G (index 6) pour l'heure spécifique
             
-            console.log('📅 Après parsing:');
-            console.log('  Checkin:', startDate.toLocaleDateString('fr-FR'), startDate);
-            console.log('  Checkout:', endDate.toLocaleDateString('fr-FR'), endDate);
-            console.log('👤 Invité:', guestName);
-            console.log('✔️  Statut:', status);
+            // Détermine l'heure de checkout à utiliser pour cette réservation
+            let effectiveCheckoutTime = CONFIG.property.checkoutTime;
+            let effectiveCheckoutHourDecimal = defaultCheckoutHourDecimal;
+
+            if (specificCheckoutTime) {
+                effectiveCheckoutTime = specificCheckoutTime;
+                effectiveCheckoutHourDecimal = parseCheckoutTime(specificCheckoutTime) || defaultCheckoutHourDecimal;
+            }
+
+            console.log(`\n--- Réservation ligne ${index + 2} ---`);
+            console.log('  Checkin:', startDate.toLocaleDateString('fr-FR'));
+            console.log('  Checkout:', endDate.toLocaleDateString('fr-FR'));
+            console.log('  ✔️  Statut:', status);
+            console.log(`  ⏰ Heure de checkout effective: ${effectiveCheckoutTime} (${effectiveCheckoutHourDecimal.toFixed(2)})`);
             
             // ========================================
-            // LOGIQUE AVEC GESTION DE L'HEURE
+            // LOGIQUE AVEC GESTION DE L'HEURE (CORRIGÉE)
             // ========================================
             
             const isConfirmed = status.toLowerCase() === 'confirmé';
             
             // 1. L'invité est-il arrivé ?
             const hasArrived = startDate <= today;
-            console.log(`  ➡️ A déjà checkin? ${hasArrived} (${startDate.toLocaleDateString()} <= ${today.toLocaleDateString()})`);
             
             // 2. L'invité est-il encore là ?
             const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
@@ -162,12 +169,13 @@ async function loadReservations() {
                 console.log(`  ✅ Part APRÈS aujourd'hui → Encore présent`);
             } else if (endDateOnly.getTime() === today.getTime()) {
                 // Part AUJOURD'HUI - vérifier l'heure
-                if (currentHour < checkoutHour) {
+                // Utilisation de l'heure spécifique à la réservation
+                if (currentHour < effectiveCheckoutHourDecimal) { 
                     isStillPresent = true;
-                    console.log(`  ✅ Part aujourd'hui, AVANT checkout (${currentHour.toFixed(2)} < ${checkoutHour.toFixed(2)}) → Encore présent`);
+                    console.log(`  ✅ Part aujourd'hui, AVANT checkout (${currentHour.toFixed(2)} < ${effectiveCheckoutHourDecimal.toFixed(2)}) → Encore présent`);
                 } else {
                     isStillPresent = false;
-                    console.log(`  ❌ Part aujourd'hui, APRÈS checkout (${currentHour.toFixed(2)} >= ${checkoutHour.toFixed(2)}) → Déjà parti`);
+                    console.log(`  ❌ Part aujourd'hui, APRÈS checkout (${currentHour.toFixed(2)} >= ${effectiveCheckoutHourDecimal.toFixed(2)}) → Déjà parti`);
                 }
             } else {
                 // Parti hier ou avant
@@ -186,7 +194,8 @@ async function loadReservations() {
                     guestName,
                     guestCount,
                     language,
-                    status
+                    status,
+                    checkoutTime: effectiveCheckoutTime // <--- NOUVEAU: Stocke l'heure effective pour l'affichage
                 };
                 currentLanguage = language;
             }
@@ -387,11 +396,14 @@ function showGuestMode() {
     console.log('💁 Affichage du nom:', guestName);
     document.getElementById('guestName').textContent = guestName;
     
+    // CORRIGÉ: Utilise l'heure de checkout spécifique si elle existe
+    const checkoutTimeDisplay = currentReservation?.checkoutTime || CONFIG.property.checkoutTime;
+    
     if (currentReservation) {
         const checkoutDate = formatDate(currentReservation.endDate, currentLanguage);
-        document.getElementById('checkoutTime').textContent = `${checkoutDate} ${CONFIG.property.checkoutTime}`;
+        document.getElementById('checkoutTime').textContent = `${checkoutDate} ${checkoutTimeDisplay}`;
     } else {
-        document.getElementById('checkoutTime').textContent = CONFIG.property.checkoutTime;
+        document.getElementById('checkoutTime').textContent = checkoutTimeDisplay;
     }
     
     const rulesText = CONFIG.rules.join(' • ');
