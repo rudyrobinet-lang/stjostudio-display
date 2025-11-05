@@ -188,3 +188,37 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px
+}
+
+/* Correction pour les activités qui se chevauchent */
+.activity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    max-height: 650px;
+    overflow: hidden;
+}
+
+.activity-card-modern {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 153, 255, 0.05) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 15px;
+    padding: 25px;
+    transition: all 0.3s;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-title {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 8px;
+}
+
+.activity-description {
+    font-size: 16px;
+    color: #888;
+    line-height: 1.4;
+}
