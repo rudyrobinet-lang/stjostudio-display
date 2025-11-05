@@ -168,7 +168,7 @@ async function loadReservations() {
                 isStillPresent = true;
                 console.log(`  ✅ Part APRÈS aujourd'hui → Encore présent`);
             } else if (endDateOnly.getTime() === today.getTime()) {
-                // Part AUJOURD'HUI - vérifier l'heure (mode guest jusqu'à 10h59 pour un checkout à 11h00)
+                // Part AUJOURD'HUI - vérifier l'heure (mode guest jusqu'à l'heure de checkout)
                 if (currentHour < effectiveCheckoutHourDecimal) { 
                     isStillPresent = true;
                     console.log(`  ✅ Part aujourd'hui, AVANT checkout (${currentHour.toFixed(2)} < ${effectiveCheckoutHourDecimal.toFixed(2)}) → Encore présent`);
@@ -199,10 +199,11 @@ async function loadReservations() {
                 currentLanguage = language;
             }
             
-            // Prochaine réservation
-            if (startDate > today && isConfirmed) {
-                if (!nextReservation || startDate < nextReservation.startDate) {
-                    console.log('  🔜 Prochaine réservation détectée');
+            // Prochaine réservation (strictement aujourd'hui ou dans le futur ET confirmée)
+            if (startDate >= today && isConfirmed) { 
+                // Mise à jour de nextReservation uniquement si elle est plus proche
+                if (!nextReservation || startDate.getTime() < nextReservation.startDate.getTime()) { 
+                    console.log('  🔜 Prochaine réservation détectée (Aujourd\'hui ou Futur)');
                     nextReservation = {
                         startDate,
                         endDate,
@@ -366,7 +367,7 @@ function displayDefaultWeather() {
     document.getElementById('weatherDetails').textContent = 'Météo non disponible';
 }
 
-// ==================== MISE À JOUR AFFICHAGE (LOGIQUE CORRIGÉE) ====================
+// ==================== MISE À JOUR AFFICHAGE (LOGIQUE VÉRIFIÉE) ====================
 
 function updateDisplay() {
     console.log('\n🖥️  Mise à jour de l\'affichage...');
@@ -390,11 +391,11 @@ function updateDisplay() {
     if (isCountdownWindow) {
         // Période 11h00 à 15h59.99 (Countdown Window)
         if (nextReservation) {
-            console.log('→ Mode COUNTDOWN (Fenêtre 11h-16h + Prochaine résa)');
+            console.log('→ Mode COUNTDOWN (Fenêtre 11h-16h + Prochaine résa détectée)');
             showCountdownMode();
         } else {
-            // Pas de prochaine réservation, même si on est dans la fenêtre 11h-16h
-            console.log('→ Mode GUEST par défaut (Pas de prochaine résa)');
+            // Pas de prochaine réservation, le temps d'attente est indéterminé
+            console.log('→ Mode GUEST par défaut (Aucune prochaine résa)');
             showGuestMode();
         }
     } else {
