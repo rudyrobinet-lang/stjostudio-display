@@ -132,7 +132,7 @@ async function loadReservations() {
             const guestCount = row.c[3]?.v || 1;
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
-            const specificCheckoutTime = row.c[6]?.v || null; // <--- NOUVEAU: Colonne G (index 6) pour l'heure spécifique
+            const specificCheckoutTime = row.c[6]?.v || null; // Colonne G (index 6) pour l'heure spécifique
             
             // Détermine l'heure de checkout à utiliser pour cette réservation
             let effectiveCheckoutTime = CONFIG.property.checkoutTime;
@@ -150,7 +150,7 @@ async function loadReservations() {
             console.log(`  ⏰ Heure de checkout effective: ${effectiveCheckoutTime} (${effectiveCheckoutHourDecimal.toFixed(2)})`);
             
             // ========================================
-            // LOGIQUE AVEC GESTION DE L'HEURE (CORRIGÉE)
+            // LOGIQUE DE PRÉSENCE DE L'INVITÉ
             // ========================================
             
             const isConfirmed = status.toLowerCase() === 'confirmé';
@@ -168,8 +168,7 @@ async function loadReservations() {
                 isStillPresent = true;
                 console.log(`  ✅ Part APRÈS aujourd'hui → Encore présent`);
             } else if (endDateOnly.getTime() === today.getTime()) {
-                // Part AUJOURD'HUI - vérifier l'heure
-                // Utilisation de l'heure spécifique à la réservation
+                // Part AUJOURD'HUI - vérifier l'heure (mode guest jusqu'à 10h59 pour un checkout à 11h00)
                 if (currentHour < effectiveCheckoutHourDecimal) { 
                     isStillPresent = true;
                     console.log(`  ✅ Part aujourd'hui, AVANT checkout (${currentHour.toFixed(2)} < ${effectiveCheckoutHourDecimal.toFixed(2)}) → Encore présent`);
@@ -195,7 +194,7 @@ async function loadReservations() {
                     guestCount,
                     language,
                     status,
-                    checkoutTime: effectiveCheckoutTime // <--- NOUVEAU: Stocke l'heure effective pour l'affichage
+                    checkoutTime: effectiveCheckoutTime
                 };
                 currentLanguage = language;
             }
@@ -220,7 +219,6 @@ async function loadReservations() {
         console.log('📊 RÉSULTAT FINAL:');
         console.log('Réservation actuelle:', currentReservation);
         console.log('Prochaine réservation:', nextReservation);
-        console.log('Mode qui sera affiché:', currentReservation ? '👤 GUEST' : (nextReservation ? '⏱️ COUNTDOWN' : '👋 GUEST (défaut)'));
         console.log('========================================\n');
         
     } catch (error) {
@@ -368,21 +366,40 @@ function displayDefaultWeather() {
     document.getElementById('weatherDetails').textContent = 'Météo non disponible';
 }
 
-// ==================== MISE À JOUR AFFICHAGE ====================
+// ==================== MISE À JOUR AFFICHAGE (LOGIQUE CORRIGÉE) ====================
 
 function updateDisplay() {
     console.log('\n🖥️  Mise à jour de l\'affichage...');
-    console.log('currentReservation:', currentReservation);
-    console.log('nextReservation:', nextReservation);
     
+    const now = new Date();
+    // Calcule l'heure actuelle au format décimal (ex: 12h10 -> 12.166)
+    const currentHourDecimal = now.getHours() + (now.getMinutes() / 60);
+
     if (currentReservation) {
-        console.log('→ Mode GUEST (invité présent)');
+        // SCÉNARIO 1: Invité actuel présent. Toujours mode GUEST.
+        console.log('→ Mode GUEST (Invité présent)');
         showGuestMode();
-    } else if (nextReservation) {
-        console.log('→ Mode COUNTDOWN (prochains invités)');
-        showCountdownMode();
+        return;
+    } 
+
+    // SCÉNARIO 2: Aucun invité actuel. Application de la règle horaire.
+
+    // La fenêtre COUNTDOWN est de 11h00 (inclus) à 16h00 (exclus)
+    const isCountdownWindow = (currentHourDecimal >= 11.00 && currentHourDecimal < 16.00);
+    
+    if (isCountdownWindow) {
+        // Période 11h00 à 15h59.99 (Countdown Window)
+        if (nextReservation) {
+            console.log('→ Mode COUNTDOWN (Fenêtre 11h-16h + Prochaine résa)');
+            showCountdownMode();
+        } else {
+            // Pas de prochaine réservation, même si on est dans la fenêtre 11h-16h
+            console.log('→ Mode GUEST par défaut (Pas de prochaine résa)');
+            showGuestMode();
+        }
     } else {
-        console.log('→ Mode GUEST par défaut (aucune réservation)');
+        // Période 16h00 à 10h59.99 (Guest Mode Window)
+        console.log('→ Mode GUEST (Fenêtre 16h-11h)');
         showGuestMode();
     }
 }
@@ -396,7 +413,7 @@ function showGuestMode() {
     console.log('💁 Affichage du nom:', guestName);
     document.getElementById('guestName').textContent = guestName;
     
-    // CORRIGÉ: Utilise l'heure de checkout spécifique si elle existe
+    // Utilise l'heure de checkout spécifique si elle existe
     const checkoutTimeDisplay = currentReservation?.checkoutTime || CONFIG.property.checkoutTime;
     
     if (currentReservation) {
