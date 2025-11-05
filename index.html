@@ -30,13 +30,12 @@
             <div class="welcome-label">BIENVENUE</div>
             <h2 id="guestName" class="guest-name">Chargement...</h2>
             
-            <!-- Check-out info avec nouvelle icône -->
+            <!-- Check-out info -->
             <div class="checkout-info">
                 <div class="checkout-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="64" height="64">
-                        <path fill="#2c3e50" d="M256 0c-25.3 0-47.2 14.7-57.6 36c-7 14.3-11 30.5-11 47.6c0 44 26.4 81.9 64 98.3V232c0 13.3 10.7 24 24 24s24-10.7 24-24V181.9c37.6-16.4 64-54.3 64-98.3c0-17.1-4-33.3-11-47.6C303.2 14.7 281.3 0 256 0zM160 144v88c0 13.3 10.7 24 24 24h48v64h-72c-13.3 0-24 10.7-24 24s10.7 24 24 24h72v96c0 13.3 10.7 24 24 24s24-10.7 24-24V368h72c13.3 0 24-10.7 24-24s-10.7-24-24-24h-72V256h48c13.3 0 24-10.7 24-24V144c0-13.3-10.7-24-24-24H184c-13.3 0-24 10.7-24 24zm240 240c-26.5 0-48 21.5-48 48v32c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48V432c0-26.5-21.5-48-48-48H400z"/>
-                        <!-- Cape du super-héros -->
-                        <path fill="#e74c3c" d="M288 64c0-17.1 4-33.3 11-47.6C285.9 6.1 271.3 0 256 0c-15.3 0-29.9 6.1-43.1 16.4c7-14.3 11-30.5 11-47.6c0 0-64 32-64 96v48l96 128l96-128V112c0-64-64-96-64-96z" opacity="0.3"/>
+                    <!-- Icône super-héros SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="48" height="48">
+                        <path fill="#00d4ff" d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm95.8 32.6L272 480l-32-136 32-56h-96l32 56-32 136-47.8-191.4C59.4 317.3 0 378.8 0 454.4v9.6c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-9.6c0-75.6-59.4-137.1-128.2-165.8z"/>
                     </svg>
                 </div>
                 <div class="checkout-details">
@@ -53,57 +52,4 @@
                 <div id="currentDateTime" class="current-date">mar. 4 nov. 2025, 20:30</div>
             </div>
             
-            <div id="activityGrid" class="activity-grid">
-                <!-- Les activités seront chargées dynamiquement -->
-            </div>
-        </div>
-
-        <!-- Sidebar météo détaillée -->
-        <aside class="weather-sidebar">
-            <h3>MÉTÉO</h3>
-            <div class="weather-sidebar-content">
-                <div id="weatherIcon2" class="weather-icon-large">🌤️</div>
-                <div id="temperature2" class="temperature-large">--°</div>
-                <div id="weatherDetails2" class="weather-details-sidebar">Chargement...</div>
-            </div>
-        </aside>
-
-        <!-- Règles de la maison -->
-        <footer class="rules-section">
-            <p id="rulesText">Non fumeur • Pas de fêtes • Animaux acceptés</p>
-        </footer>
-    </div>
-
-    <!-- Vue countdown : Prochain invité -->
-    <div id="countdownView" class="countdown-container">
-        <div class="countdown-content">
-            <h2 class="countdown-title">Prochain invité</h2>
-            <h3 id="nextGuestName" class="next-guest-name">Chargement...</h3>
-            <p id="nextGuestCount" class="next-guest-count">👥 2 personnes</p>
-            
-            <div class="countdown-timer">
-                <div class="countdown-block">
-                    <div id="days" class="countdown-number">00</div>
-                    <div class="countdown-label">JOURS</div>
-                </div>
-                <div class="countdown-separator">:</div>
-                <div class="countdown-block">
-                    <div id="hours" class="countdown-number">00</div>
-                    <div class="countdown-label">HEURES</div>
-                </div>
-                <div class="countdown-separator">:</div>
-                <div class="countdown-block">
-                    <div id="minutes" class="countdown-number">00</div>
-                    <div class="countdown-label">MINUTES</div>
-                </div>
-            </div>
-
-            <div id="fullDate" class="countdown-date">mardi 4 novembre 2025</div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="config.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+            <div id="activityGr
