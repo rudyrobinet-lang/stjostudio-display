@@ -43,7 +43,8 @@ function initializeApp() {
     setInterval(loadWeather, CONFIG.refreshInterval.weather);
     setInterval(updateTime, CONFIG.refreshInterval.time);
 
-    // updateDisplay() sera appelé automatiquement par loadData() après le chargement
+    // Mettre à jour l'affichage
+    updateDisplay();
 }
 
 // ==================== CHARGEMENT DONNÉES GOOGLE SHEETS ====================
@@ -85,17 +86,11 @@ async function loadReservations() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        console.log('Date du jour (today):', today);
-        
         currentReservation = null;
         nextReservation = null;
         
-        rows.forEach((row, index) => {
+        rows.forEach(row => {
             if (!row.c[0] || !row.c[1]) return; // Ignorer les lignes vides
-            
-            console.log(`--- Ligne ${index + 2} du Google Sheet ---`);
-            console.log('Valeur brute startDate:', row.c[0].v);
-            console.log('Valeur brute endDate:', row.c[1].v);
             
             const startDate = parseDate(row.c[0].v);
             const endDate = parseDate(row.c[1].v);
@@ -104,16 +99,8 @@ async function loadReservations() {
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
             
-            console.log('Après parsing - startDate:', startDate);
-            console.log('Après parsing - endDate:', endDate);
-            console.log('Guest:', guestName, '| Status:', status);
-            console.log('Comparaison: startDate <= today ?', startDate <= today);
-            console.log('Comparaison: endDate >= today ?', endDate >= today);
-            console.log('Comparaison: status confirmé ?', status.toLowerCase() === 'confirmé');
-            
             // Réservation en cours
             if (startDate <= today && endDate >= today && status.toLowerCase() === 'confirmé') {
-                console.log('✅ RÉSERVATION EN COURS TROUVÉE:', guestName);
                 currentReservation = {
                     startDate,
                     endDate,
@@ -128,7 +115,6 @@ async function loadReservations() {
             // Prochaine réservation
             if (startDate > today && status.toLowerCase() === 'confirmé') {
                 if (!nextReservation || startDate < nextReservation.startDate) {
-                    console.log('✅ PROCHAINE RÉSERVATION TROUVÉE:', guestName);
                     nextReservation = {
                         startDate,
                         endDate,
@@ -141,7 +127,6 @@ async function loadReservations() {
             }
         });
         
-        console.log('=== RÉSULTAT FINAL ===');
         console.log('Réservation actuelle:', currentReservation);
         console.log('Prochaine réservation:', nextReservation);
         
@@ -193,6 +178,7 @@ async function loadActivities() {
         
     } catch (error) {
         console.warn('Onglet Activites non trouvé, utilisation des activités par défaut');
+        // Utiliser des activités par défaut en cas d'erreur
         activities = getDefaultActivities();
     }
 }
@@ -203,6 +189,7 @@ async function loadConfiguration() {
     try {
         const response = await fetch(url);
         
+        // Vérifier si la réponse est OK
         if (!response.ok) {
             throw new Error('Onglet Configuration non trouvé');
         }
@@ -218,6 +205,7 @@ async function loadConfiguration() {
             const param = row.c[0].v;
             const value = row.c[1].v;
             
+            // Mettre à jour la configuration si nécessaire
             switch(param.toLowerCase()) {
                 case 'nom propriété':
                 case 'nom propriete':
@@ -298,7 +286,7 @@ function displayWeather(data) {
     const condition = data.weather[0].main;
     const description = data.weather[0].description;
     const humidity = data.main.humidity;
-    const windSpeed = Math.round(data.wind.speed * 3.6);
+    const windSpeed = Math.round(data.wind.speed * 3.6); // m/s to km/h
     
     const icon = CONFIG.weatherIcons[condition] || CONFIG.weatherIcons.default;
     
@@ -320,18 +308,13 @@ function displayDefaultWeather() {
 // ==================== MISE À JOUR AFFICHAGE ====================
 
 function updateDisplay() {
-    console.log('📺 Mise à jour de l\'affichage...');
-    console.log('currentReservation:', currentReservation);
-    
+    // Déterminer le mode (invité présent ou countdown)
     if (currentReservation) {
-        console.log('→ Affichage mode invité');
         showGuestMode();
     } else if (nextReservation) {
-        console.log('→ Affichage mode countdown');
         showCountdownMode();
     } else {
-        console.log('→ Affichage mode par défaut (bienvenue)');
-        showGuestMode();
+        showGuestMode(); // Mode par défaut
     }
 }
 
@@ -340,10 +323,11 @@ function showGuestMode() {
     document.getElementById('guestView').style.display = 'grid';
     document.getElementById('countdownView').classList.remove('active');
     
+    // Nom de l'invité
     const guestName = currentReservation ? currentReservation.guestName : 'Bienvenue';
-    console.log('💁 Affichage du nom:', guestName);
     document.getElementById('guestName').textContent = guestName;
     
+    // Date de check-out
     if (currentReservation) {
         const checkoutDate = formatDate(currentReservation.endDate, currentLanguage);
         document.getElementById('checkoutTime').textContent = `${checkoutDate} ${CONFIG.property.checkoutTime}`;
@@ -351,11 +335,14 @@ function showGuestMode() {
         document.getElementById('checkoutTime').textContent = CONFIG.property.checkoutTime;
     }
     
+    // Règles (traduites)
     const rulesText = CONFIG.rules.join(' • ');
     document.getElementById('rulesText').textContent = rulesText;
     
+    // Activités
     displayActivities();
     
+    // Traductions
     const t = CONFIG.translations[currentLanguage];
     document.querySelector('.welcome-label').textContent = t.welcome;
     document.querySelector('.checkout-details').textContent = t.checkout;
@@ -372,8 +359,9 @@ function showCountdownMode() {
         document.getElementById('nextGuestName').textContent = nextReservation.guestName;
         document.getElementById('nextGuestCount').textContent = `👥 ${nextReservation.guestCount} ${CONFIG.translations[currentLanguage].people}`;
         
+        // Calculer et afficher le countdown
         updateCountdown();
-        setInterval(updateCountdown, 60000);
+        setInterval(updateCountdown, 60000); // Mettre à jour chaque minute
     }
 }
 
@@ -381,6 +369,7 @@ function displayActivities() {
     const grid = document.getElementById('activityGrid');
     grid.innerHTML = '';
     
+    // Afficher maximum 4 activités pour le layout
     const displayActivities = activities.slice(0, 4);
     
     displayActivities.forEach(activity => {
@@ -405,13 +394,15 @@ function displayActivities() {
         grid.appendChild(card);
     });
     
+    // Rotation automatique si plus de 4 activités
     if (activities.length > 4) {
         startActivityRotation();
     }
     
+    // Démarrer l'animation de surbrillance automatique (mode kiosk)
     setTimeout(() => {
         startActivityHighlightAnimation();
-    }, 1000);
+    }, 1000); // Attendre 1 seconde après le chargement
 }
 
 let activityRotationIndex = 4;
@@ -422,6 +413,7 @@ let highlightInterval = null;
 // ==================== ANIMATION AUTOMATIQUE ACTIVITÉS ====================
 
 function startActivityHighlightAnimation() {
+    // Arrêter l'animation précédente si elle existe
     if (highlightInterval) {
         clearInterval(highlightInterval);
     }
@@ -430,15 +422,19 @@ function startActivityHighlightAnimation() {
     
     if (cards.length === 0) return;
     
+    // Réinitialiser l'index
     currentHighlightIndex = 0;
     
+    // Fonction pour mettre en surbrillance une carte
     const highlightCard = () => {
+        // Retirer la surbrillance de toutes les cartes
         cards.forEach(card => {
             card.style.transform = 'translateY(0)';
             card.style.borderColor = 'rgba(0, 212, 255, 0.3)';
             card.style.boxShadow = 'none';
         });
         
+        // Ajouter la surbrillance à la carte actuelle
         if (cards[currentHighlightIndex]) {
             const currentCard = cards[currentHighlightIndex];
             currentCard.style.transform = 'translateY(-5px)';
@@ -446,11 +442,14 @@ function startActivityHighlightAnimation() {
             currentCard.style.boxShadow = '0 10px 40px rgba(0, 212, 255, 0.3)';
         }
         
+        // Passer à la carte suivante
         currentHighlightIndex = (currentHighlightIndex + 1) % cards.length;
     };
     
+    // Première surbrillance immédiate
     highlightCard();
     
+    // Puis continuer toutes les 3 secondes
     highlightInterval = setInterval(highlightCard, 3000);
 }
 
@@ -462,6 +461,7 @@ function startActivityRotation() {
     activityRotationInterval = setInterval(() => {
         const cards = document.querySelectorAll('.activity-card-modern');
         if (cards.length >= 4 && activities.length > 4) {
+            // Remplacer la dernière carte
             const lastCard = cards[3];
             lastCard.style.opacity = '0';
             
@@ -488,7 +488,7 @@ function startActivityRotation() {
                 activityRotationIndex++;
             }, 500);
         }
-    }, 8000);
+    }, 8000); // Rotation toutes les 8 secondes
 }
 
 function updateCountdown() {
@@ -499,6 +499,7 @@ function updateCountdown() {
     const diff = target - now;
     
     if (diff <= 0) {
+        // Recharger les données si la date est passée
         loadData();
         return;
     }
@@ -537,63 +538,13 @@ function updateTime() {
 // ==================== UTILITAIRES ====================
 
 function parseDate(dateString) {
-    console.log('📅 Parsing date:', dateString, '| Type:', typeof dateString);
-    
-    if (dateString instanceof Date) {
-        console.log('✅ Déjà un objet Date:', dateString);
-        return dateString;
+    // Gérer différents formats de date
+    if (dateString.includes('Date(')) {
+        // Format Google Sheets Date()
+        const timestamp = parseInt(dateString.match(/\d+/)[0]);
+        return new Date(timestamp);
     }
-    
-    const str = String(dateString);
-    
-    // Format Google Sheets Date(year, month, day)
-    if (str.includes('Date(')) {
-        // Extraire les paramètres : Date(2025,10,2) -> [2025, 10, 2]
-        const match = str.match(/Date\((\d+),(\d+),(\d+)\)/);
-        if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]); // Google Sheets utilise les mois 0-11
-            const day = parseInt(match[3]);
-            const date = new Date(year, month, day);
-            console.log('✅ Date from Date() constructor:', date);
-            return date;
-        }
-    }
-    
-    // Format numérique Google Sheets (nombre de jours depuis 1900)
-    if (!isNaN(dateString) && typeof dateString === 'number') {
-        const date = new Date((dateString - 25569) * 86400 * 1000);
-        console.log('✅ Date from Excel number:', date);
-        return date;
-    }
-    
-    // Format JJ/MM/AAAA (français)
-    if (str.includes('/')) {
-        const parts = str.split('/');
-        if (parts.length === 3) {
-            const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1;
-            const year = parseInt(parts[2]);
-            
-            if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year > 2000) {
-                const date = new Date(year, month, day);
-                console.log('✅ Date from DD/MM/YYYY:', date);
-                return date;
-            }
-        }
-    }
-    
-    // Format YYYY-MM-DD ou autre format ISO
-    if (str.includes('-')) {
-        const date = new Date(str);
-        console.log('✅ Date from ISO:', date);
-        return date;
-    }
-    
-    // Format par défaut
-    const date = new Date(str);
-    console.log('⚠️ Date from default parser:', date);
-    return date;
+    return new Date(dateString);
 }
 
 function formatDate(date, lang = 'fr') {
