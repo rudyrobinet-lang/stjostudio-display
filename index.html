@@ -2,107 +2,90 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>St-Jo'Studio - Display</title>
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>St-Jo'Studio - Affichage Accueil</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Vue principale : Invité présent -->
-    <div id="guestView" class="main-container">
-        <!-- En-tête avec logo et météo -->
-        <header class="header">
-            <div class="logo-section">
-                <div class="house-icon">🏠</div>
-                <h1 class="property-name">St-Jo'Studio</h1>
-            </div>
-            
-            <div class="weather-section">
-                <div id="weatherIcon" class="weather-icon">🌤️</div>
-                <div class="weather-info">
-                    <div id="temperature" class="temperature">--°</div>
-                    <div id="weatherDetails" class="weather-details">Chargement...</div>
+    <!-- Mode Guest -->
+    <div class="container" id="guestView">
+        <div class="sidebar">
+            <div>
+                <div class="logo-section">
+                    <div class="logo">🏠</div>
+                    <div class="property-name">St-Jo'Studio</div>
                 </div>
-            </div>
-        </header>
 
-        <!-- Section de bienvenue -->
-        <div class="welcome-section">
-            <div class="welcome-label">BIENVENUE</div>
-            <h2 id="guestName" class="guest-name">Chargement...</h2>
-            
-            <!-- Check-out info avec nouvelle icône -->
-            <div class="checkout-info">
-                <div class="checkout-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="64" height="64">
-                        <path fill="#2c3e50" d="M256 0c-25.3 0-47.2 14.7-57.6 36c-7 14.3-11 30.5-11 47.6c0 44 26.4 81.9 64 98.3V232c0 13.3 10.7 24 24 24s24-10.7 24-24V181.9c37.6-16.4 64-54.3 64-98.3c0-17.1-4-33.3-11-47.6C303.2 14.7 281.3 0 256 0zM160 144v88c0 13.3 10.7 24 24 24h48v64h-72c-13.3 0-24 10.7-24 24s10.7 24 24 24h72v96c0 13.3 10.7 24 24 24s24-10.7 24-24V368h72c13.3 0 24-10.7 24-24s-10.7-24-24-24h-72V256h48c13.3 0 24-10.7 24-24V144c0-13.3-10.7-24-24-24H184c-13.3 0-24 10.7-24 24zm240 240c-26.5 0-48 21.5-48 48v32c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48V432c0-26.5-21.5-48-48-48H400z"/>
-                        <!-- Cape du super-héros -->
-                        <path fill="#e74c3c" d="M288 64c0-17.1 4-33.3 11-47.6C285.9 6.1 271.3 0 256 0c-15.3 0-29.9 6.1-43.1 16.4c7-14.3 11-30.5 11-47.6c0 0-64 32-64 96v48l96 128l96-128V112c0-64-64-96-64-96z" opacity="0.3"/>
-                    </svg>
+                <div class="welcome-section">
+                    <div class="welcome-label">Bienvenue</div>
+                    <div class="guest-name-modern" id="guestName">Chargement...</div>
+                    <div class="date-time" id="currentDateTime">Chargement...</div>
                 </div>
-                <div class="checkout-details">
-                    <div class="checkout-label">Check-out</div>
-                    <div id="checkoutTime" class="checkout-time">11:00 AM</div>
+            </div>
+
+            <div class="weather-sidebar" id="weatherSidebar">
+                <h3>Météo</h3>
+                <div class="weather-main">
+                    <div class="weather-icon-sidebar" id="weatherIcon">⏳</div>
+                    <div class="temp-sidebar" id="temperature">--°</div>
+                </div>
+                <div class="weather-details-sidebar" id="weatherDetails">
+                    Chargement...
                 </div>
             </div>
         </div>
 
-        <!-- Section Activités -->
-        <div class="activities-section">
-            <div class="activities-header">
-                <h3 class="section-title">Activités et événements</h3>
-                <div id="currentDateTime" class="current-date">mar. 4 nov. 2025, 20:30</div>
+        <div class="main-area">
+            <div class="header-bar">
+                <div class="date-display" id="fullDate">Chargement...</div>
             </div>
-            
-            <div id="activityGrid" class="activity-grid">
-                <!-- Les activités seront chargées dynamiquement -->
-            </div>
-        </div>
 
-        <!-- Sidebar météo détaillée -->
-        <aside class="weather-sidebar">
-            <h3>MÉTÉO</h3>
-            <div class="weather-sidebar-content">
-                <div id="weatherIcon2" class="weather-icon-large">🌤️</div>
-                <div id="temperature2" class="temperature-large">--°</div>
-                <div id="weatherDetails2" class="weather-details-sidebar">Chargement...</div>
-            </div>
-        </aside>
-
-        <!-- Règles de la maison -->
-        <footer class="rules-section">
-            <p id="rulesText">Non fumeur • Pas de fêtes • Animaux acceptés</p>
-        </footer>
-    </div>
-
-    <!-- Vue countdown : Prochain invité -->
-    <div id="countdownView" class="countdown-container">
-        <div class="countdown-content">
-            <h2 class="countdown-title">Prochain invité</h2>
-            <h3 id="nextGuestName" class="next-guest-name">Chargement...</h3>
-            <p id="nextGuestCount" class="next-guest-count">👥 2 personnes</p>
-            
-            <div class="countdown-timer">
-                <div class="countdown-block">
-                    <div id="days" class="countdown-number">00</div>
-                    <div class="countdown-label">JOURS</div>
-                </div>
-                <div class="countdown-separator">:</div>
-                <div class="countdown-block">
-                    <div id="hours" class="countdown-number">00</div>
-                    <div class="countdown-label">HEURES</div>
-                </div>
-                <div class="countdown-separator">:</div>
-                <div class="countdown-block">
-                    <div id="minutes" class="countdown-number">00</div>
-                    <div class="countdown-label">MINUTES</div>
+            <div class="activities-modern">
+                <h2 class="section-title">Activités et événements</h2>
+                <div class="activity-grid" id="activityGrid">
+                    <!-- Activities will be loaded dynamically -->
                 </div>
             </div>
 
-            <div id="fullDate" class="countdown-date">mardi 4 novembre 2025</div>
+            <div class="footer-bar">
+                <div class="checkout-modern">
+                    <div class="checkout-icon-modern">🗓️</div>
+                    <div>
+                        <div class="checkout-details">Check-out</div>
+                        <div class="checkout-time" id="checkoutTime">11:00 AM</div>
+                    </div>
+                </div>
+                <div class="rules-modern" id="rulesText">
+                    Vider les poubelles • Non-fumeur • Mode calme après 21h
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Countdown Mode -->
+    <div class="countdown-container" id="countdownView">
+        <div class="countdown-header">Prochains voyageurs</div>
+        <div class="countdown-display">
+            <div class="countdown-unit">
+                <div class="countdown-number" id="days">00</div>
+                <div class="countdown-label">Jours</div>
+            </div>
+            <div class="countdown-unit">
+                <div class="countdown-number" id="hours">00</div>
+                <div class="countdown-label">Heures</div>
+            </div>
+            <div class="countdown-unit">
+                <div class="countdown-number" id="minutes">00</div>
+                <div class="countdown-label">Minutes</div>
+            </div>
+        </div>
+        <div class="next-booking" id="nextBookingInfo">
+            <h3>Prochaine arrivée</h3>
+            <div class="next-guest-name" id="nextGuestName">En attente</div>
+            <div class="next-guest-count" id="nextGuestCount">👥 -- personnes</div>
+        </div>
+    </div>
+
     <script src="config.js"></script>
     <script src="app.js"></script>
 </body>
