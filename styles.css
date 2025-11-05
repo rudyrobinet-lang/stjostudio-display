@@ -380,8 +380,9 @@ body {
 
 .fly-icon {
     background: transparent;
-    width: 42px;
-    height: 42px;
+    width: 92px;
+    height: 92px;
     object-fit: contain;
     vertical-align: middle;
 }
+
