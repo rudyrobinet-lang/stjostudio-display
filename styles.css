@@ -376,3 +376,20 @@ body {
         height: 100vh;
     }
 }
+
+/* Style pour l'icône super-héros */
+.checkout-icon {
+    margin-right: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkout-icon svg {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    transition: transform 0.3s ease;
+}
+
+.checkout-icon svg:hover {
+    transform: scale(1.1);
+}
