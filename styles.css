@@ -153,6 +153,8 @@ body {
 .activities-modern {
     flex: 1;
     animation: fadeIn 1s ease;
+    margin-bottom: 50px;
+    padding: 10px;
 }
 
 .section-title {
@@ -167,7 +169,8 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 30px;
     max-height: 600px;
-    overflow: hidden;
+    overflow: visible;
+    padding: 5px;
 }
 
 .activity-card-modern {
@@ -215,6 +218,11 @@ body {
 .checkout-modern {
     display: flex;
     align-items: center;
+}
+
+.checkout-icon-modern {
+    font-size: 42px;
+    margin-right: 20px;
 }
 
 .checkout-details {
@@ -368,4 +376,10 @@ body {
         width: 100vw;
         height: 100vh;
     }
+.fly-icon {
+	background: transparent;
+  width: 94px;   /* ajuste selon la taille désirée */
+  height: 94px;
+  object-fit: contain;
+  vertical-align: middle;
 }
