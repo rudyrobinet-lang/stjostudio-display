@@ -1,5 +1,5 @@
 // Application principale pour St-Jo'Studio Display
-// VERSION FINALE - Parsing dates + Gestion heure checkout
+// VERSION FINALE - Gestion heures checkin ET checkout
 
 let currentMode = 'guest';
 let currentReservation = null;
@@ -13,13 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('St-Jo\'Studio Display - Initialisation...');
     console.log('⏰ Heure actuelle:', new Date().toLocaleString('fr-FR'));
     
-    // Vérifier la configuration
     if (!validateConfig()) {
         showError('Configuration incomplète. Veuillez vérifier config.js');
         return;
     }
 
-    // Démarrer l'application
     initializeApp();
 });
 
@@ -35,12 +33,10 @@ function validateConfig() {
 }
 
 function initializeApp() {
-    // Charger les données initiales
     loadData();
     loadWeather();
     updateTime();
 
-    // Configurer les intervalles de rafraîchissement
     setInterval(loadData, CONFIG.refreshInterval.data);
     setInterval(loadWeather, CONFIG.refreshInterval.weather);
     setInterval(updateTime, CONFIG.refreshInterval.time);
@@ -51,19 +47,10 @@ function initializeApp() {
 async function loadData() {
     try {
         console.log('Chargement des données depuis Google Sheets...');
-        
-        // Charger les réservations
         await loadReservations();
-        
-        // Charger les activités
         await loadActivities();
-        
-        // Charger la configuration
         await loadConfiguration();
-        
-        // Mettre à jour l'affichage
         updateDisplay();
-        
         console.log('Données chargées avec succès');
     } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
@@ -71,13 +58,11 @@ async function loadData() {
     }
 }
 
-function parseCheckoutTime(timeString) {
-    // Parse "11:00 AM", "16:00", etc. et retourne l'heure en format 24h décimal
-    if (!timeString) return null; // Retourne null si la chaîne est vide ou nulle
-    
+function parseTime(timeString) {
+    // Parse "11:00 AM", "16:00", etc. et retourne l'heure en décimal
     const match = timeString.match(/(\d+):(\d+)\s*(AM|PM)?/i);
     if (!match) {
-        console.warn('Format d\'heure invalide:', timeString, '- ne peut pas être parsé');
+        console.warn('Format d\'heure invalide:', timeString);
         return null;
     }
     
@@ -85,17 +70,13 @@ function parseCheckoutTime(timeString) {
     const minutes = parseInt(match[2]);
     const period = match[3]?.toUpperCase();
     
-    // Conversion AM/PM en format 24h
     if (period === 'PM' && hours !== 12) {
         hours += 12;
     } else if (period === 'AM' && hours === 12) {
         hours = 0;
     }
     
-    const decimalHour = hours + (minutes / 60);
-    console.log(`⏰ Heure de checkout parsée: "${timeString}" → ${hours}h${minutes} → ${decimalHour.toFixed(2)}`);
-    
-    return decimalHour;
+    return hours + (minutes / 60);
 }
 
 async function loadReservations() {
@@ -104,113 +85,127 @@ async function loadReservations() {
     try {
         const response = await fetch(url);
         const text = await response.text();
-        
-        // Google Sheets retourne du JSONP, on doit extraire le JSON
         const json = JSON.parse(text.substring(47).slice(0, -2));
         
         const rows = json.table.rows;
         const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Minuit aujourd'hui
-        const currentHour = now.getHours() + (now.getMinutes() / 60); // Heure actuelle en décimal
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const currentHour = now.getHours() + (now.getMinutes() / 60);
         
         console.log('📅 Date du jour (minuit):', today.toLocaleDateString('fr-FR'));
         console.log('⏰ Heure actuelle:', now.toLocaleTimeString('fr-FR'), `(décimal: ${currentHour.toFixed(2)})`);
         
-        // Parser l'heure de checkout par défaut depuis config
-        const defaultCheckoutHourDecimal = parseCheckoutTime(CONFIG.property.checkoutTime);
+        // Heures par défaut
+        const defaultCheckoutHour = parseTime(CONFIG.property.checkoutTime) || 11;
+        const defaultCheckinHour = parseTime(CONFIG.property.checkinTime) || 16;
+        
+        console.log('⏰ Checkout par défaut:', CONFIG.property.checkoutTime, '→', defaultCheckoutHour.toFixed(2));
+        console.log('⏰ Checkin par défaut:', CONFIG.property.checkinTime, '→', defaultCheckinHour.toFixed(2));
         
         currentReservation = null;
         nextReservation = null;
         
         rows.forEach((row, index) => {
-            if (!row.c[0] || !row.c[1]) return; // Ignorer les lignes vides
+            if (!row.c[0] || !row.c[1]) return;
             
-            // --- PARSING DES DONNÉES DE LA LIGNE ---
+            console.log(`\n--- Réservation ligne ${index + 2} ---`);
+            
             const startDate = parseDate(row.c[0].v);
             const endDate = parseDate(row.c[1].v);
             const guestName = row.c[2]?.v || 'Invité';
             const guestCount = row.c[3]?.v || 1;
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
-            const specificCheckoutTime = row.c[6]?.v || null; // Colonne G (index 6) pour l'heure spécifique
             
-            // Détermine l'heure de checkout à utiliser pour cette réservation
-            let effectiveCheckoutTime = CONFIG.property.checkoutTime;
-            let effectiveCheckoutHourDecimal = defaultCheckoutHourDecimal;
-
-            if (specificCheckoutTime) {
-                effectiveCheckoutTime = specificCheckoutTime;
-                effectiveCheckoutHourDecimal = parseCheckoutTime(specificCheckoutTime) || defaultCheckoutHourDecimal;
-            }
-
-            console.log(`\n--- Réservation ligne ${index + 2} ---`);
+            // NOUVEAU : Heures personnalisées (colonnes G et H optionnelles)
+            const customCheckinTime = row.c[6]?.v; // Colonne G : Heure checkin
+            const customCheckoutTime = row.c[7]?.v; // Colonne H : Heure checkout
+            
+            const checkinHour = customCheckinTime ? parseTime(customCheckinTime) : defaultCheckinHour;
+            const checkoutHour = customCheckoutTime ? parseTime(customCheckoutTime) : defaultCheckoutHour;
+            
+            console.log('📅 Dates:');
             console.log('  Checkin:', startDate.toLocaleDateString('fr-FR'));
             console.log('  Checkout:', endDate.toLocaleDateString('fr-FR'));
-            console.log('  ✔️  Statut:', status);
-            console.log(`  ⏰ Heure de checkout effective: ${effectiveCheckoutTime} (${effectiveCheckoutHourDecimal.toFixed(2)})`);
-            
-            // ========================================
-            // LOGIQUE DE PRÉSENCE DE L'INVITÉ
-            // ========================================
+            console.log('👤 Invité:', guestName);
+            console.log('⏰ Heures:');
+            console.log('  Checkin:', checkinHour?.toFixed(2) || 'N/A');
+            console.log('  Checkout:', checkoutHour?.toFixed(2) || 'N/A');
+            console.log('✔️  Statut:', status);
             
             const isConfirmed = status.toLowerCase() === 'confirmé';
             
-            // 1. L'invité est-il arrivé ?
-            const hasArrived = startDate <= today;
+            // ========================================
+            // LOGIQUE COMPLÈTE : CHECKIN + CHECKOUT
+            // ========================================
             
-            // 2. L'invité est-il encore là ?
+            const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
             const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
             
-            let isStillPresent = false;
+            let hasCheckedIn = false;
+            let hasCheckedOut = false;
             
-            if (endDateOnly > today) {
-                // Part demain ou plus tard
-                isStillPresent = true;
-                console.log(`  ✅ Part APRÈS aujourd'hui → Encore présent`);
-            } else if (endDateOnly.getTime() === today.getTime()) {
-                // Part AUJOURD'HUI - vérifier l'heure (mode guest jusqu'à l'heure de checkout)
-                if (currentHour < effectiveCheckoutHourDecimal) { 
-                    isStillPresent = true;
-                    console.log(`  ✅ Part aujourd'hui, AVANT checkout (${currentHour.toFixed(2)} < ${effectiveCheckoutHourDecimal.toFixed(2)}) → Encore présent`);
+            // 1. A-t-il déjà fait le checkin ?
+            if (startDateOnly < today) {
+                // Arrivé hier ou avant
+                hasCheckedIn = true;
+                console.log('  ✅ Checkin: OUI (arrivé avant aujourd\'hui)');
+            } else if (startDateOnly.getTime() === today.getTime()) {
+                // Arrive AUJOURD'HUI - vérifier l'heure
+                if (currentHour >= checkinHour) {
+                    hasCheckedIn = true;
+                    console.log(`  ✅ Checkin: OUI (arrive aujourd'hui, après heure checkin: ${currentHour.toFixed(2)} >= ${checkinHour.toFixed(2)})`);
                 } else {
-                    isStillPresent = false;
-                    console.log(`  ❌ Part aujourd'hui, APRÈS checkout (${currentHour.toFixed(2)} >= ${effectiveCheckoutHourDecimal.toFixed(2)}) → Déjà parti`);
+                    hasCheckedIn = false;
+                    console.log(`  ❌ Checkin: NON (arrive aujourd'hui, avant heure checkin: ${currentHour.toFixed(2)} < ${checkinHour.toFixed(2)})`);
                 }
             } else {
-                // Parti hier ou avant
-                isStillPresent = false;
-                console.log(`  ❌ Parti AVANT aujourd'hui → Plus là`);
+                // Arrive demain ou plus tard
+                hasCheckedIn = false;
+                console.log('  ❌ Checkin: NON (arrive après aujourd\'hui)');
             }
             
-            console.log(`  📊 Résumé: arrivé=${hasArrived}, présent=${isStillPresent}, confirmé=${isConfirmed}`);
+            // 2. A-t-il déjà fait le checkout ?
+            if (endDateOnly < today) {
+                // Parti hier ou avant
+                hasCheckedOut = true;
+                console.log('  ✅ Checkout: OUI (parti avant aujourd\'hui)');
+            } else if (endDateOnly.getTime() === today.getTime()) {
+                // Part AUJOURD'HUI - vérifier l'heure
+                if (currentHour >= checkoutHour) {
+                    hasCheckedOut = true;
+                    console.log(`  ✅ Checkout: OUI (part aujourd'hui, après heure checkout: ${currentHour.toFixed(2)} >= ${checkoutHour.toFixed(2)})`);
+                } else {
+                    hasCheckedOut = false;
+                    console.log(`  ❌ Checkout: NON (part aujourd'hui, avant heure checkout: ${currentHour.toFixed(2)} < ${checkoutHour.toFixed(2)})`);
+                }
+            } else {
+                // Part demain ou plus tard
+                hasCheckedOut = false;
+                console.log('  ❌ Checkout: NON (part après aujourd\'hui)');
+            }
+            
+            const isPresent = hasCheckedIn && !hasCheckedOut;
+            console.log(`  📊 Résumé: checkedIn=${hasCheckedIn}, checkedOut=${hasCheckedOut}, présent=${isPresent}, confirmé=${isConfirmed}`);
             
             // Réservation EN COURS
-            if (hasArrived && isStillPresent && isConfirmed) {
-                console.log('  🎉 RÉSERVATION EN COURS DÉTECTÉE !');
+            if (isPresent && isConfirmed) {
+                console.log('  🎉 RÉSERVATION EN COURS !');
                 currentReservation = {
-                    startDate,
-                    endDate,
-                    guestName,
-                    guestCount,
-                    language,
-                    status,
-                    checkoutTime: effectiveCheckoutTime
+                    startDate, endDate, guestName, guestCount, language, status,
+                    checkinHour, checkoutHour
                 };
                 currentLanguage = language;
             }
             
-            // Prochaine réservation (strictement aujourd'hui ou dans le futur ET confirmée)
-            if (startDate >= today && isConfirmed) { 
-                // Mise à jour de nextReservation uniquement si elle est plus proche
-                if (!nextReservation || startDate.getTime() < nextReservation.startDate.getTime()) { 
-                    console.log('  🔜 Prochaine réservation détectée (Aujourd\'hui ou Futur)');
+            // Prochaine réservation
+            if (!hasCheckedIn && isConfirmed) {
+                if (!nextReservation || startDate < nextReservation.startDate || 
+                    (startDate.getTime() === nextReservation.startDate.getTime() && checkinHour < nextReservation.checkinHour)) {
+                    console.log('  🔜 PROCHAINE RÉSERVATION');
                     nextReservation = {
-                        startDate,
-                        endDate,
-                        guestName,
-                        guestCount,
-                        language,
-                        status
+                        startDate, endDate, guestName, guestCount, language, status,
+                        checkinHour, checkoutHour
                     };
                 }
             }
@@ -220,6 +215,7 @@ async function loadReservations() {
         console.log('📊 RÉSULTAT FINAL:');
         console.log('Réservation actuelle:', currentReservation);
         console.log('Prochaine réservation:', nextReservation);
+        console.log('Mode qui sera affiché:', currentReservation ? '👤 GUEST' : (nextReservation ? '⏱️ COUNTDOWN' : '👋 GUEST (défaut)'));
         console.log('========================================\n');
         
     } catch (error) {
@@ -233,18 +229,13 @@ async function loadActivities() {
     
     try {
         const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error('Onglet Activites non trouvé');
-        }
+        if (!response.ok) throw new Error('Onglet Activites non trouvé');
         
         const text = await response.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
         
-        const rows = json.table.rows;
         activities = [];
-        
-        rows.forEach(row => {
+        json.table.rows.forEach(row => {
             if (!row.c[1]) return;
             
             const icon = row.c[0]?.v || '🎯';
@@ -260,7 +251,6 @@ async function loadActivities() {
         });
         
         console.log(`${activities.length} activités chargées`);
-        
     } catch (error) {
         console.warn('Onglet Activites non trouvé, utilisation des activités par défaut');
         activities = getDefaultActivities();
@@ -272,39 +262,24 @@ async function loadConfiguration() {
     
     try {
         const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error('Onglet Configuration non trouvé');
-        }
+        if (!response.ok) throw new Error('Onglet Configuration non trouvé');
         
         const text = await response.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
         
-        const rows = json.table.rows;
-        
-        rows.forEach(row => {
+        json.table.rows.forEach(row => {
             if (!row.c[0] || !row.c[1]) return;
             
-            const param = row.c[0].v;
+            const param = row.c[0].v.toLowerCase();
             const value = row.c[1].v;
             
-            switch(param.toLowerCase()) {
-                case 'nom propriété':
-                case 'nom propriete':
-                    CONFIG.property.name = value;
-                    break;
-                case 'ville météo':
-                case 'ville meteo':
-                    CONFIG.property.city = value;
-                    break;
-                case 'heure check-out':
-                    CONFIG.property.checkoutTime = value;
-                    break;
-            }
+            if (param.includes('nom propri')) CONFIG.property.name = value;
+            else if (param.includes('ville m')) CONFIG.property.city = value;
+            else if (param.includes('heure check-out')) CONFIG.property.checkoutTime = value;
+            else if (param.includes('heure check-in')) CONFIG.property.checkinTime = value;
         });
         
         console.log('Configuration personnalisée chargée');
-        
     } catch (error) {
         console.warn('Onglet Configuration non trouvé, utilisation config par défaut');
     }
@@ -322,7 +297,6 @@ function getDefaultActivities() {
 
 async function loadWeather() {
     if (CONFIG.weatherApiKey === 'REMPLACER_PAR_VOTRE_CLE_API') {
-        console.warn('Météo non disponible - clé API manquante');
         displayDefaultWeather();
         return;
     }
@@ -335,11 +309,9 @@ async function loadWeather() {
         if (data.cod === 200) {
             displayWeather(data);
         } else {
-            console.error('Erreur API météo:', data);
             displayDefaultWeather();
         }
     } catch (error) {
-        console.error('Erreur chargement météo:', error);
         displayDefaultWeather();
     }
 }
@@ -367,40 +339,19 @@ function displayDefaultWeather() {
     document.getElementById('weatherDetails').textContent = 'Météo non disponible';
 }
 
-// ==================== MISE À JOUR AFFICHAGE (LOGIQUE VÉRIFIÉE) ====================
+// ==================== MISE À JOUR AFFICHAGE ====================
 
 function updateDisplay() {
     console.log('\n🖥️  Mise à jour de l\'affichage...');
     
-    const now = new Date();
-    // Calcule l'heure actuelle au format décimal (ex: 12h10 -> 12.166)
-    const currentHourDecimal = now.getHours() + (now.getMinutes() / 60);
-
     if (currentReservation) {
-        // SCÉNARIO 1: Invité actuel présent. Toujours mode GUEST.
-        console.log('→ Mode GUEST (Invité présent)');
+        console.log('→ Mode GUEST (invité présent)');
         showGuestMode();
-        return;
-    } 
-
-    // SCÉNARIO 2: Aucun invité actuel. Application de la règle horaire.
-
-    // La fenêtre COUNTDOWN est de 11h00 (inclus) à 16h00 (exclus)
-    const isCountdownWindow = (currentHourDecimal >= 11.00 && currentHourDecimal < 16.00);
-    
-    if (isCountdownWindow) {
-        // Période 11h00 à 15h59.99 (Countdown Window)
-        if (nextReservation) {
-            console.log('→ Mode COUNTDOWN (Fenêtre 11h-16h + Prochaine résa détectée)');
-            showCountdownMode();
-        } else {
-            // Pas de prochaine réservation, le temps d'attente est indéterminé
-            console.log('→ Mode GUEST par défaut (Aucune prochaine résa)');
-            showGuestMode();
-        }
+    } else if (nextReservation) {
+        console.log('→ Mode COUNTDOWN (prochains invités)');
+        showCountdownMode();
     } else {
-        // Période 16h00 à 10h59.99 (Guest Mode Window)
-        console.log('→ Mode GUEST (Fenêtre 16h-11h)');
+        console.log('→ Mode GUEST par défaut (aucune réservation)');
         showGuestMode();
     }
 }
@@ -414,19 +365,16 @@ function showGuestMode() {
     console.log('💁 Affichage du nom:', guestName);
     document.getElementById('guestName').textContent = guestName;
     
-    // Utilise l'heure de checkout spécifique si elle existe
-    const checkoutTimeDisplay = currentReservation?.checkoutTime || CONFIG.property.checkoutTime;
-    
     if (currentReservation) {
         const checkoutDate = formatDate(currentReservation.endDate, currentLanguage);
-        document.getElementById('checkoutTime').textContent = `${checkoutDate} ${checkoutTimeDisplay}`;
+        const checkoutTime = currentReservation.checkoutHour ? 
+            formatHour(currentReservation.checkoutHour) : CONFIG.property.checkoutTime;
+        document.getElementById('checkoutTime').textContent = `${checkoutDate} ${checkoutTime}`;
     } else {
-        document.getElementById('checkoutTime').textContent = checkoutTimeDisplay;
+        document.getElementById('checkoutTime').textContent = CONFIG.property.checkoutTime;
     }
     
-    const rulesText = CONFIG.rules.join(' • ');
-    document.getElementById('rulesText').textContent = rulesText;
-    
+    document.getElementById('rulesText').textContent = CONFIG.rules.join(' • ');
     displayActivities();
     
     const t = CONFIG.translations[currentLanguage];
@@ -454,9 +402,7 @@ function displayActivities() {
     const grid = document.getElementById('activityGrid');
     grid.innerHTML = '';
     
-    const displayActivities = activities.slice(0, 4);
-    
-    displayActivities.forEach(activity => {
+    activities.slice(0, 4).forEach(activity => {
         const card = document.createElement('div');
         card.className = 'activity-card-modern';
         
@@ -478,13 +424,8 @@ function displayActivities() {
         grid.appendChild(card);
     });
     
-    if (activities.length > 4) {
-        startActivityRotation();
-    }
-    
-    setTimeout(() => {
-        startActivityHighlightAnimation();
-    }, 1000);
+    if (activities.length > 4) startActivityRotation();
+    setTimeout(() => startActivityHighlightAnimation(), 1000);
 }
 
 let activityRotationIndex = 4;
@@ -508,10 +449,9 @@ function startActivityHighlightAnimation() {
         });
         
         if (cards[currentHighlightIndex]) {
-            const currentCard = cards[currentHighlightIndex];
-            currentCard.style.transform = 'translateY(-5px)';
-            currentCard.style.borderColor = '#00d4ff';
-            currentCard.style.boxShadow = '0 10px 40px rgba(0, 212, 255, 0.3)';
+            cards[currentHighlightIndex].style.transform = 'translateY(-5px)';
+            cards[currentHighlightIndex].style.borderColor = '#00d4ff';
+            cards[currentHighlightIndex].style.boxShadow = '0 10px 40px rgba(0, 212, 255, 0.3)';
         }
         
         currentHighlightIndex = (currentHighlightIndex + 1) % cards.length;
@@ -560,7 +500,16 @@ function updateCountdown() {
     if (!nextReservation) return;
     
     const now = new Date();
-    const target = new Date(nextReservation.startDate);
+    let target = new Date(nextReservation.startDate);
+    
+    // Si checkin aujourd'hui, ajouter l'heure de checkin
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (target.getTime() === today.getTime() && nextReservation.checkinHour) {
+        const hours = Math.floor(nextReservation.checkinHour);
+        const minutes = Math.round((nextReservation.checkinHour - hours) * 60);
+        target.setHours(hours, minutes, 0, 0);
+    }
+    
     const diff = target - now;
     
     if (diff <= 0) {
@@ -581,54 +530,32 @@ function updateCountdown() {
 
 function updateTime() {
     const now = new Date();
-    const options = { 
-        weekday: 'short', 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    };
+    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     
     document.getElementById('currentDateTime').textContent = now.toLocaleDateString('fr-FR', options);
     document.getElementById('fullDate').textContent = now.toLocaleDateString('fr-FR', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
     });
 }
 
 // ==================== UTILITAIRES ====================
 
 function parseDate(dateString) {
-    console.log('  📅 Parsing:', dateString, '| Type:', typeof dateString);
-    
-    if (dateString instanceof Date) {
-        console.log('  ✅ Déjà un objet Date');
-        return dateString;
-    }
+    if (dateString instanceof Date) return dateString;
     
     const str = String(dateString);
     
-    // Format Google Sheets Date(year, month, day)
+    // Format Google Sheets Date()
     if (str.includes('Date(')) {
         const match = str.match(/Date\((\d+),(\d+),(\d+)\)/);
         if (match) {
-            const year = parseInt(match[1]);
-            const month = parseInt(match[2]); // Google Sheets: mois 0-11
-            const day = parseInt(match[3]);
-            const date = new Date(year, month, day);
-            console.log('  ✅ Format Date():', date.toLocaleDateString());
-            return date;
+            return new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
         }
     }
     
-    // Format numérique (Excel/Sheets serial number)
+    // Format numérique
     if (!isNaN(dateString) && typeof dateString === 'number') {
-        const date = new Date((dateString - 25569) * 86400 * 1000);
-        console.log('  ✅ Format numérique:', date.toLocaleDateString());
-        return date;
+        return new Date((dateString - 25569) * 86400 * 1000);
     }
     
     // Format JJ/MM/AAAA
@@ -636,33 +563,31 @@ function parseDate(dateString) {
         const parts = str.split('/');
         if (parts.length === 3) {
             const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1; // JavaScript: mois 0-11
+            const month = parseInt(parts[1]) - 1;
             const year = parseInt(parts[2]);
-            
             if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year > 2000) {
-                const date = new Date(year, month, day);
-                console.log('  ✅ Format JJ/MM/AAAA:', date.toLocaleDateString());
-                return date;
+                return new Date(year, month, day);
             }
         }
     }
     
-    // Format ISO (YYYY-MM-DD)
+    // Format ISO
     if (str.includes('-')) {
-        const date = new Date(str);
-        console.log('  ✅ Format ISO:', date.toLocaleDateString());
-        return date;
+        return new Date(str);
     }
     
-    // Fallback
-    const date = new Date(str);
-    console.log('  ⚠️ Fallback parser:', date.toLocaleDateString());
-    return date;
+    return new Date(str);
 }
 
 function formatDate(date, lang = 'fr') {
     const options = { weekday: 'long', month: 'long', day: 'numeric' };
     return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', options);
+}
+
+function formatHour(decimalHour) {
+    const hours = Math.floor(decimalHour);
+    const minutes = Math.round((decimalHour - hours) * 60);
+    return `${hours}:${String(minutes).padStart(2, '0')}`;
 }
 
 function capitalize(str) {
@@ -675,24 +600,13 @@ function showError(message) {
     document.getElementById('guestName').classList.add('error');
 }
 
-// ==================== BASCULEMENT MODE MANUEL ====================
-
 window.toggleMode = function() {
-    if (currentMode === 'guest') {
-        if (nextReservation) {
-            showCountdownMode();
-        }
+    if (currentMode === 'guest' && nextReservation) {
+        showCountdownMode();
     } else {
         showGuestMode();
     }
 };
 
-// ==================== GESTION ERREURS ====================
-
-window.addEventListener('error', (e) => {
-    console.error('Erreur globale:', e.error);
-});
-
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('Promise rejetée:', e.reason);
-});
+window.addEventListener('error', (e) => console.error('Erreur globale:', e.error));
+window.addEventListener('unhandledrejection', (e) => console.error('Promise rejetée:', e.reason));
