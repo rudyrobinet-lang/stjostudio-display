@@ -4,7 +4,8 @@ const CONFIG = {
     property: {
         name: "St-Jo'Studio",
         city: "Quebec",
-        checkoutTime: "11:00 AM"
+        checkoutTime: "11:00 AM",  // Heure de checkout (départ)
+        checkinTime: "16:00"        // Heure de checkin (arrivée) - NOUVEAU !
     },
 
     // Règles de la maison
