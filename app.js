@@ -368,16 +368,8 @@ function showGuestMode() {
     console.log('💁 Affichage du nom:', guestName);
     document.getElementById('guestName').textContent = guestName;
     
-    // Afficher uniquement l'heure sous le nom
-    if (currentReservation) {
-        const checkoutTime = currentReservation.checkoutHour ? 
-            formatHour(currentReservation.checkoutHour) : CONFIG.property.checkoutTime;
-        document.getElementById('currentDateTime').textContent = checkoutTime;
-    } else {
-        const now = new Date();
-        const timeOptions = { hour: '2-digit', minute: '2-digit' };
-        document.getElementById('currentDateTime').textContent = now.toLocaleTimeString('fr-FR', timeOptions);
-    }
+    // Afficher l'heure actuelle sous le nom (mise à jour dynamique)
+    updateCurrentTime();
     
     // Date de checkout dans le footer
     if (currentReservation) {
@@ -546,12 +538,22 @@ function updateCountdown() {
 function updateTime() {
     const now = new Date();
     
-    // Mettre à jour uniquement la date complète dans le header
+    // Mettre à jour la date complète dans le header
     document.getElementById('fullDate').textContent = now.toLocaleDateString('fr-FR', { 
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
     });
     
-    // NE PAS mettre à jour currentDateTime - il est géré par showGuestMode()
+    // Mettre à jour l'heure actuelle sous le nom
+    updateCurrentTime();
+}
+
+function updateCurrentTime() {
+    const now = new Date();
+    const timeOptions = { hour: '2-digit', minute: '2-digit' };
+    const currentDateTimeElem = document.getElementById('currentDateTime');
+    if (currentDateTimeElem) {
+        currentDateTimeElem.textContent = now.toLocaleTimeString('fr-FR', timeOptions);
+    }
 }
 
 // ==================== UTILITAIRES ====================
