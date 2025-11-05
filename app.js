@@ -546,19 +546,28 @@ function parseDate(dateString) {
     
     const str = String(dateString);
     
+    // Format Google Sheets Date(year, month, day)
     if (str.includes('Date(')) {
-        const timestamp = parseInt(str.match(/\d+/)[0]);
-        const date = new Date(timestamp);
-        console.log('✅ Date from timestamp:', date);
-        return date;
+        // Extraire les paramètres : Date(2025,10,2) -> [2025, 10, 2]
+        const match = str.match(/Date\((\d+),(\d+),(\d+)\)/);
+        if (match) {
+            const year = parseInt(match[1]);
+            const month = parseInt(match[2]); // Google Sheets utilise les mois 0-11
+            const day = parseInt(match[3]);
+            const date = new Date(year, month, day);
+            console.log('✅ Date from Date() constructor:', date);
+            return date;
+        }
     }
     
+    // Format numérique Google Sheets (nombre de jours depuis 1900)
     if (!isNaN(dateString) && typeof dateString === 'number') {
         const date = new Date((dateString - 25569) * 86400 * 1000);
         console.log('✅ Date from Excel number:', date);
         return date;
     }
     
+    // Format JJ/MM/AAAA (français)
     if (str.includes('/')) {
         const parts = str.split('/');
         if (parts.length === 3) {
@@ -574,12 +583,14 @@ function parseDate(dateString) {
         }
     }
     
+    // Format YYYY-MM-DD ou autre format ISO
     if (str.includes('-')) {
         const date = new Date(str);
         console.log('✅ Date from ISO:', date);
         return date;
     }
     
+    // Format par défaut
     const date = new Date(str);
     console.log('⚠️ Date from default parser:', date);
     return date;
