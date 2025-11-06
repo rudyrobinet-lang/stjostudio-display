@@ -305,11 +305,15 @@ function filterActivitiesForGuest(allActivities) {
     const checkoutDate = new Date(currentReservation.endDate);
     checkoutDate.setHours(23, 59, 59, 999);
     
+    console.log('\n🎯 FILTRAGE DES ÉVÉNEMENTS');
     console.log('Période du séjour:', checkinDate.toLocaleDateString('fr-FR'), '→', checkoutDate.toLocaleDateString('fr-FR'));
+    console.log('Checkin timestamp:', checkinDate.getTime());
+    console.log('Checkout timestamp:', checkoutDate.getTime());
     
     const filtered = allActivities.filter(activity => {
         // Activités permanentes : toujours afficher
         if (activity.isPermanent) {
+            console.log(`✅ Activité permanente: ${activity.name}`);
             return true;
         }
         
@@ -320,20 +324,26 @@ function filterActivitiesForGuest(allActivities) {
         const eventEnd = new Date(activity.endDate);
         eventEnd.setHours(23, 59, 59, 999);
         
-        // L'événement chevauche-t-il le séjour ?
-        const isAvailable = (
-            (eventStart <= checkoutDate) &&  // L'événement commence avant/pendant le séjour
-            (eventEnd >= checkinDate)        // L'événement finit après/pendant le séjour
-        );
+        console.log(`\n📅 Vérification: ${activity.name}`);
+        console.log('  Dates brutes:', activity.startDate, '→', activity.endDate);
+        console.log('  Event start:', eventStart.toLocaleDateString('fr-FR'), 'timestamp:', eventStart.getTime());
+        console.log('  Event end:', eventEnd.toLocaleDateString('fr-FR'), 'timestamp:', eventEnd.getTime());
+        console.log('  Checkin:', checkinDate.toLocaleDateString('fr-FR'), 'timestamp:', checkinDate.getTime());
+        console.log('  Checkout:', checkoutDate.toLocaleDateString('fr-FR'), 'timestamp:', checkoutDate.getTime());
         
-        if (isAvailable) {
-            console.log(`✅ Événement disponible: ${activity.name} (${eventStart.toLocaleDateString('fr-FR')} - ${eventEnd.toLocaleDateString('fr-FR')})`);
-        } else {
-            console.log(`❌ Événement non disponible: ${activity.name} (${eventStart.toLocaleDateString('fr-FR')} - ${eventEnd.toLocaleDateString('fr-FR')})`);
-        }
+        // L'événement chevauche-t-il le séjour ?
+        const startsBeforeEnd = eventStart <= checkoutDate;
+        const endsAfterStart = eventEnd >= checkinDate;
+        const isAvailable = startsBeforeEnd && endsAfterStart;
+        
+        console.log('  eventStart <= checkoutDate ?', startsBeforeEnd, `(${eventStart.getTime()} <= ${checkoutDate.getTime()})`);
+        console.log('  eventEnd >= checkinDate ?', endsAfterStart, `(${eventEnd.getTime()} >= ${checkinDate.getTime()})`);
+        console.log('  Résultat:', isAvailable ? '✅ AFFICHER' : '❌ MASQUER');
         
         return isAvailable;
     });
+    
+    console.log(`\n📊 Total: ${filtered.length} activités/événements affichés sur ${allActivities.length}\n`);
     
     return filtered;
 }
@@ -519,12 +529,14 @@ function displayActivities() {
         const card = document.createElement('div');
         card.className = 'activity-card-modern';
         
-        // Badge pour les événements temporaires
-        let badge = '';
+        // Date de l'événement (style checkout)
+        let eventDate = '';
         if (!activity.isPermanent && activity.startDate && activity.endDate) {
-            const startDate = activity.startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-            const endDate = activity.endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-            badge = `<div class="event-badge">📅 ${startDate} - ${endDate}</div>`;
+            const startDay = activity.startDate.getDate();
+            const endDay = activity.endDate.getDate();
+            const month = activity.startDate.toLocaleDateString('fr-FR', { month: 'long' });
+            
+            eventDate = `<div class="event-date">du ${startDay} au ${endDay} ${month}</div>`;
         }
         
         const details = [];
@@ -533,11 +545,11 @@ function displayActivities() {
         if (activity.hours) details.push(activity.hours);
         
         card.innerHTML = `
-            ${badge}
             <div class="activity-header">
                 <div class="activity-icon-modern">${activity.icon}</div>
                 <div class="activity-title">${activity.name}</div>
             </div>
+            ${eventDate}
             <div class="activity-description">
                 ${details.join(' • ')}
             </div>
@@ -596,6 +608,16 @@ function startActivityRotation() {
                 activityRotationIndex = activityRotationIndex % activities.length;
                 const activity = activities[activityRotationIndex];
                 
+                // Date de l'événement (style checkout)
+                let eventDate = '';
+                if (!activity.isPermanent && activity.startDate && activity.endDate) {
+                    const startDay = activity.startDate.getDate();
+                    const endDay = activity.endDate.getDate();
+                    const month = activity.startDate.toLocaleDateString('fr-FR', { month: 'long' });
+                    
+                    eventDate = `<div class="event-date">du ${startDay} au ${endDay} ${month}</div>`;
+                }
+                
                 const details = [];
                 if (activity.description) details.push(activity.description);
                 if (activity.distance) details.push(activity.distance);
@@ -606,6 +628,7 @@ function startActivityRotation() {
                         <div class="activity-icon-modern">${activity.icon}</div>
                         <div class="activity-title">${activity.name}</div>
                     </div>
+                    ${eventDate}
                     <div class="activity-description">
                         ${details.join(' • ')}
                     </div>
