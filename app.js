@@ -33,6 +33,10 @@ function validateConfig() {
 }
 
 function initializeApp() {
+    // Appliquer la couleur cyan par défaut
+    document.documentElement.style.setProperty('--primary-color', '#00d4ff');
+    document.documentElement.style.setProperty('--secondary-color', '#0099ff');
+    
     loadData();
     loadWeather();
     updateTime();
@@ -305,7 +309,18 @@ function filterActivitiesForGuest(allActivities) {
     const checkoutDate = new Date(currentReservation.endDate);
     checkoutDate.setHours(23, 59, 59, 999);
     
-    console.log('\n🎯 FILTRAGE DES ÉVÉNEMENTS');
+    // Date actuelle (aujourd'hui)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // J+7 (dans 7 jours)
+    const maxFutureDate = new Date(today);
+    maxFutureDate.setDate(maxFutureDate.getDate() + 7);
+    maxFutureDate.setHours(23, 59, 59, 999);
+    
+    console.log('\n🎯 FILTRAGE DES ÉVÉNEMENTS - OPTION D');
+    console.log('Aujourd\'hui:', today.toLocaleDateString('fr-FR'));
+    console.log('Limite future (J+7):', maxFutureDate.toLocaleDateString('fr-FR'));
     console.log('Période du séjour:', checkinDate.toLocaleDateString('fr-FR'), '→', checkoutDate.toLocaleDateString('fr-FR'));
     console.log('Checkin timestamp:', checkinDate.getTime());
     console.log('Checkout timestamp:', checkoutDate.getTime());
@@ -317,7 +332,7 @@ function filterActivitiesForGuest(allActivities) {
             return true;
         }
         
-        // Événements temporaires : vérifier si durant le séjour
+        // Événements temporaires : vérifier selon Option D
         const eventStart = new Date(activity.startDate);
         eventStart.setHours(0, 0, 0, 0);
         
@@ -328,19 +343,52 @@ function filterActivitiesForGuest(allActivities) {
         console.log('  Dates brutes:', activity.startDate, '→', activity.endDate);
         console.log('  Event start:', eventStart.toLocaleDateString('fr-FR'), 'timestamp:', eventStart.getTime());
         console.log('  Event end:', eventEnd.toLocaleDateString('fr-FR'), 'timestamp:', eventEnd.getTime());
+        console.log('  Aujourd\'hui:', today.toLocaleDateString('fr-FR'), 'timestamp:', today.getTime());
+        console.log('  J+7:', maxFutureDate.toLocaleDateString('fr-FR'), 'timestamp:', maxFutureDate.getTime());
         console.log('  Checkin:', checkinDate.toLocaleDateString('fr-FR'), 'timestamp:', checkinDate.getTime());
         console.log('  Checkout:', checkoutDate.toLocaleDateString('fr-FR'), 'timestamp:', checkoutDate.getTime());
         
-        // L'événement chevauche-t-il le séjour ?
+        // Règle 1 : L'événement doit chevaucher le séjour
         const startsBeforeEnd = eventStart <= checkoutDate;
         const endsAfterStart = eventEnd >= checkinDate;
-        const isAvailable = startsBeforeEnd && endsAfterStart;
+        const overlapsSejour = startsBeforeEnd && endsAfterStart;
         
-        console.log('  eventStart <= checkoutDate ?', startsBeforeEnd, `(${eventStart.getTime()} <= ${checkoutDate.getTime()})`);
-        console.log('  eventEnd >= checkinDate ?', endsAfterStart, `(${eventEnd.getTime()} >= ${checkinDate.getTime()})`);
-        console.log('  Résultat:', isAvailable ? '✅ AFFICHER' : '❌ MASQUER');
+        console.log('  ├─ Chevauche le séjour ?', overlapsSejour, `(start <= checkout: ${startsBeforeEnd}, end >= checkin: ${endsAfterStart})`);
         
-        return isAvailable;
+        if (!overlapsSejour) {
+            console.log('  └─ Résultat: ❌ MASQUER (ne chevauche pas le séjour)');
+            return false;
+        }
+        
+        // Règle 2 : L'événement ne doit pas être terminé
+        const isNotFinished = eventEnd >= today;
+        console.log('  ├─ Pas encore terminé ?', isNotFinished, `(eventEnd ${eventEnd.getTime()} >= today ${today.getTime()})`);
+        
+        if (!isNotFinished) {
+            console.log('  └─ Résultat: ❌ MASQUER (événement déjà terminé)');
+            return false;
+        }
+        
+        // Règle 3 : L'événement doit commencer dans les 7 prochains jours max
+        const startsWithinWeek = eventStart <= maxFutureDate;
+        console.log('  ├─ Commence dans les 7 jours ?', startsWithinWeek, `(eventStart ${eventStart.getTime()} <= J+7 ${maxFutureDate.getTime()})`);
+        
+        if (!startsWithinWeek) {
+            console.log('  └─ Résultat: ❌ MASQUER (événement trop loin dans le futur)');
+            return false;
+        }
+        
+        // Toutes les conditions sont remplies
+        const isInProgress = eventStart <= today && eventEnd >= today;
+        const isFuture = eventStart > today;
+        
+        if (isInProgress) {
+            console.log('  └─ Résultat: ✅ AFFICHER (événement EN COURS)');
+        } else if (isFuture) {
+            console.log('  └─ Résultat: ✅ AFFICHER (événement FUTUR dans J+7)');
+        }
+        
+        return true;
     });
     
     console.log(`\n📊 Total: ${filtered.length} activités/événements affichés sur ${allActivities.length}\n`);
