@@ -40,6 +40,20 @@ function initializeApp() {
     setInterval(loadData, CONFIG.refreshInterval.data);
     setInterval(loadWeather, CONFIG.refreshInterval.weather);
     setInterval(updateTime, CONFIG.refreshInterval.time);
+    
+    // Actualisation forcée toutes les 5 minutes pour éviter les gels
+    setInterval(() => {
+        console.log('🔄 Actualisation forcée de la page...');
+        location.reload();
+    }, 300000); // 5 minutes = 300000ms
+    
+    // Activer le fade-in au chargement
+    setTimeout(() => {
+        const container = document.getElementById('guestView');
+        if (container && container.style.display !== 'none') {
+            container.classList.add('active');
+        }
+    }, 100);
 }
 
 // ==================== CHARGEMENT DONNÉES GOOGLE SHEETS ====================
@@ -361,8 +375,24 @@ function updateDisplay() {
 
 function showGuestMode() {
     currentMode = 'guest';
-    document.getElementById('guestView').style.display = 'grid';
-    document.getElementById('countdownView').classList.remove('active');
+    
+    // Fade out du countdown si actif
+    const countdownView = document.getElementById('countdownView');
+    if (countdownView.classList.contains('active')) {
+        countdownView.classList.remove('active');
+    }
+    
+    // Attendre la fin du fade out avant d'afficher guest
+    setTimeout(() => {
+        const guestView = document.getElementById('guestView');
+        guestView.style.display = 'grid';
+        
+        // Forcer le reflow pour que la transition fonctionne
+        void guestView.offsetWidth;
+        
+        // Activer le fade in
+        guestView.classList.add('active');
+    }, currentMode === 'countdown' ? 500 : 0);
     
     const guestName = currentReservation ? currentReservation.guestName : 'Bienvenue';
     console.log('💁 Affichage du nom:', guestName);
@@ -393,8 +423,20 @@ function showGuestMode() {
 
 function showCountdownMode() {
     currentMode = 'countdown';
-    document.getElementById('guestView').style.display = 'none';
-    document.getElementById('countdownView').classList.add('active');
+    
+    // Fade out du guest view si actif
+    const guestView = document.getElementById('guestView');
+    if (guestView.classList.contains('active')) {
+        guestView.classList.remove('active');
+    }
+    
+    // Attendre la fin du fade out avant d'afficher countdown
+    setTimeout(() => {
+        guestView.style.display = 'none';
+        
+        const countdownView = document.getElementById('countdownView');
+        countdownView.classList.add('active');
+    }, guestView.classList.contains('active') ? 500 : 0);
     
     if (nextReservation) {
         document.getElementById('nextGuestName').textContent = nextReservation.guestName;
