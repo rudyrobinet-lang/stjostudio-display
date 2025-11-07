@@ -1,5 +1,5 @@
 // Application principale pour St-Jo'Studio Display
-// VERSION FINALE - Gestion heures checkin ET checkout
+// VERSION AVEC OPTION 4 - Shuffle aléatoire de 2 activités toutes les 5 secondes
 
 let currentMode = 'guest';
 let currentReservation = null;
@@ -135,9 +135,8 @@ async function loadReservations() {
             const language = row.c[4]?.v?.toLowerCase() || CONFIG.defaultLanguage;
             const status = row.c[5]?.v || 'Confirmé';
             
-            // NOUVEAU : Heures personnalisées (colonnes G et H optionnelles)
-            const customCheckinTime = row.c[6]?.v; // Colonne G : Heure checkin
-            const customCheckoutTime = row.c[7]?.v; // Colonne H : Heure checkout
+            const customCheckinTime = row.c[6]?.v;
+            const customCheckoutTime = row.c[7]?.v;
             
             const checkinHour = customCheckinTime ? parseTime(customCheckinTime) : defaultCheckinHour;
             const checkoutHour = customCheckoutTime ? parseTime(customCheckoutTime) : defaultCheckoutHour;
@@ -153,23 +152,16 @@ async function loadReservations() {
             
             const isConfirmed = status.toLowerCase() === 'confirmé';
             
-            // ========================================
-            // LOGIQUE COMPLÈTE : CHECKIN + CHECKOUT
-            // ========================================
-            
             const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
             const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
             
             let hasCheckedIn = false;
             let hasCheckedOut = false;
             
-            // 1. A-t-il déjà fait le checkin ?
             if (startDateOnly < today) {
-                // Arrivé hier ou avant
                 hasCheckedIn = true;
                 console.log('  ✅ Checkin: OUI (arrivé avant aujourd\'hui)');
             } else if (startDateOnly.getTime() === today.getTime()) {
-                // Arrive AUJOURD'HUI - vérifier l'heure
                 if (currentHour >= checkinHour) {
                     hasCheckedIn = true;
                     console.log(`  ✅ Checkin: OUI (arrive aujourd'hui, après heure checkin: ${currentHour.toFixed(2)} >= ${checkinHour.toFixed(2)})`);
@@ -178,18 +170,14 @@ async function loadReservations() {
                     console.log(`  ❌ Checkin: NON (arrive aujourd'hui, avant heure checkin: ${currentHour.toFixed(2)} < ${checkinHour.toFixed(2)})`);
                 }
             } else {
-                // Arrive demain ou plus tard
                 hasCheckedIn = false;
                 console.log('  ❌ Checkin: NON (arrive après aujourd\'hui)');
             }
             
-            // 2. A-t-il déjà fait le checkout ?
             if (endDateOnly < today) {
-                // Parti hier ou avant
                 hasCheckedOut = true;
                 console.log('  ✅ Checkout: OUI (parti avant aujourd\'hui)');
             } else if (endDateOnly.getTime() === today.getTime()) {
-                // Part AUJOURD'HUI - vérifier l'heure
                 if (currentHour >= checkoutHour) {
                     hasCheckedOut = true;
                     console.log(`  ✅ Checkout: OUI (part aujourd'hui, après heure checkout: ${currentHour.toFixed(2)} >= ${checkoutHour.toFixed(2)})`);
@@ -198,7 +186,6 @@ async function loadReservations() {
                     console.log(`  ❌ Checkout: NON (part aujourd'hui, avant heure checkout: ${currentHour.toFixed(2)} < ${checkoutHour.toFixed(2)})`);
                 }
             } else {
-                // Part demain ou plus tard
                 hasCheckedOut = false;
                 console.log('  ❌ Checkout: NON (part après aujourd\'hui)');
             }
@@ -206,7 +193,6 @@ async function loadReservations() {
             const isPresent = hasCheckedIn && !hasCheckedOut;
             console.log(`  📊 Résumé: checkedIn=${hasCheckedIn}, checkedOut=${hasCheckedOut}, présent=${isPresent}, confirmé=${isConfirmed}`);
             
-            // Réservation EN COURS
             if (isPresent && isConfirmed) {
                 console.log('  🎉 RÉSERVATION EN COURS !');
                 currentReservation = {
@@ -216,7 +202,6 @@ async function loadReservations() {
                 currentLanguage = language;
             }
             
-            // Prochaine réservation
             if (!hasCheckedIn && isConfirmed) {
                 if (!nextReservation || startDate < nextReservation.startDate || 
                     (startDate.getTime() === nextReservation.startDate.getTime() && checkinHour < nextReservation.checkinHour)) {
@@ -256,7 +241,6 @@ async function loadActivities() {
         const allActivities = [];
         
         json.table.rows.forEach((row, index) => {
-            // Ignorer la première ligne (en-tête)
             if (index === 0) return;
             if (!row.c[1]) return;
             
@@ -267,7 +251,6 @@ async function loadActivities() {
             const hours = row.c[4]?.v || '';
             const active = row.c[5]?.v?.toLowerCase() !== 'non';
             
-            // NOUVEAU : Dates de l'événement (colonnes G et H)
             const startDate = row.c[6]?.v ? parseDate(row.c[6].v) : null;
             const endDate = row.c[7]?.v ? parseDate(row.c[7].v) : null;
             
@@ -285,7 +268,6 @@ async function loadActivities() {
             }
         });
         
-        // Filtrer les activités selon la réservation
         activities = filterActivitiesForGuest(allActivities);
         
         console.log(`${activities.length} activités/événements affichés (${allActivities.length} au total)`);
@@ -297,7 +279,6 @@ async function loadActivities() {
 }
 
 function filterActivitiesForGuest(allActivities) {
-    // Si pas d'invité, afficher uniquement les activités permanentes
     if (!currentReservation) {
         console.log('Pas de réservation → Activités permanentes uniquement');
         return allActivities.filter(a => a.isPermanent);
@@ -309,85 +290,43 @@ function filterActivitiesForGuest(allActivities) {
     const checkoutDate = new Date(currentReservation.endDate);
     checkoutDate.setHours(23, 59, 59, 999);
     
-    // Date actuelle (aujourd'hui)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // J+7 (dans 7 jours)
     const maxFutureDate = new Date(today);
     maxFutureDate.setDate(maxFutureDate.getDate() + 7);
     maxFutureDate.setHours(23, 59, 59, 999);
     
-    console.log('\n🎯 FILTRAGE DES ÉVÉNEMENTS - OPTION D');
+    console.log('\n🎯 FILTRAGE DES ÉVÉNEMENTS');
     console.log('Aujourd\'hui:', today.toLocaleDateString('fr-FR'));
     console.log('Limite future (J+7):', maxFutureDate.toLocaleDateString('fr-FR'));
     console.log('Période du séjour:', checkinDate.toLocaleDateString('fr-FR'), '→', checkoutDate.toLocaleDateString('fr-FR'));
-    console.log('Checkin timestamp:', checkinDate.getTime());
-    console.log('Checkout timestamp:', checkoutDate.getTime());
     
     const filtered = allActivities.filter(activity => {
-        // Activités permanentes : toujours afficher
         if (activity.isPermanent) {
             console.log(`✅ Activité permanente: ${activity.name}`);
             return true;
         }
         
-        // Événements temporaires : vérifier selon Option D
         const eventStart = new Date(activity.startDate);
         eventStart.setHours(0, 0, 0, 0);
         
         const eventEnd = new Date(activity.endDate);
         eventEnd.setHours(23, 59, 59, 999);
         
-        console.log(`\n📅 Vérification: ${activity.name}`);
-        console.log('  Dates brutes:', activity.startDate, '→', activity.endDate);
-        console.log('  Event start:', eventStart.toLocaleDateString('fr-FR'), 'timestamp:', eventStart.getTime());
-        console.log('  Event end:', eventEnd.toLocaleDateString('fr-FR'), 'timestamp:', eventEnd.getTime());
-        console.log('  Aujourd\'hui:', today.toLocaleDateString('fr-FR'), 'timestamp:', today.getTime());
-        console.log('  J+7:', maxFutureDate.toLocaleDateString('fr-FR'), 'timestamp:', maxFutureDate.getTime());
-        console.log('  Checkin:', checkinDate.toLocaleDateString('fr-FR'), 'timestamp:', checkinDate.getTime());
-        console.log('  Checkout:', checkoutDate.toLocaleDateString('fr-FR'), 'timestamp:', checkoutDate.getTime());
-        
-        // Règle 1 : L'événement doit chevaucher le séjour
         const startsBeforeEnd = eventStart <= checkoutDate;
         const endsAfterStart = eventEnd >= checkinDate;
         const overlapsSejour = startsBeforeEnd && endsAfterStart;
         
-        console.log('  ├─ Chevauche le séjour ?', overlapsSejour, `(start <= checkout: ${startsBeforeEnd}, end >= checkin: ${endsAfterStart})`);
+        if (!overlapsSejour) return false;
         
-        if (!overlapsSejour) {
-            console.log('  └─ Résultat: ❌ MASQUER (ne chevauche pas le séjour)');
-            return false;
-        }
-        
-        // Règle 2 : L'événement ne doit pas être terminé
         const isNotFinished = eventEnd >= today;
-        console.log('  ├─ Pas encore terminé ?', isNotFinished, `(eventEnd ${eventEnd.getTime()} >= today ${today.getTime()})`);
+        if (!isNotFinished) return false;
         
-        if (!isNotFinished) {
-            console.log('  └─ Résultat: ❌ MASQUER (événement déjà terminé)');
-            return false;
-        }
-        
-        // Règle 3 : L'événement doit commencer dans les 7 prochains jours max
         const startsWithinWeek = eventStart <= maxFutureDate;
-        console.log('  ├─ Commence dans les 7 jours ?', startsWithinWeek, `(eventStart ${eventStart.getTime()} <= J+7 ${maxFutureDate.getTime()})`);
+        if (!startsWithinWeek) return false;
         
-        if (!startsWithinWeek) {
-            console.log('  └─ Résultat: ❌ MASQUER (événement trop loin dans le futur)');
-            return false;
-        }
-        
-        // Toutes les conditions sont remplies
-        const isInProgress = eventStart <= today && eventEnd >= today;
-        const isFuture = eventStart > today;
-        
-        if (isInProgress) {
-            console.log('  └─ Résultat: ✅ AFFICHER (événement EN COURS)');
-        } else if (isFuture) {
-            console.log('  └─ Résultat: ✅ AFFICHER (événement FUTUR dans J+7)');
-        }
-        
+        console.log(`✅ AFFICHER: ${activity.name}`);
         return true;
     });
     
@@ -498,21 +437,15 @@ function updateDisplay() {
 function showGuestMode() {
     currentMode = 'guest';
     
-    // Fade out du countdown si actif
     const countdownView = document.getElementById('countdownView');
     if (countdownView.classList.contains('active')) {
         countdownView.classList.remove('active');
     }
     
-    // Attendre la fin du fade out avant d'afficher guest
     setTimeout(() => {
         const guestView = document.getElementById('guestView');
         guestView.style.display = 'grid';
-        
-        // Forcer le reflow pour que la transition fonctionne
         void guestView.offsetWidth;
-        
-        // Activer le fade in
         guestView.classList.add('active');
     }, currentMode === 'countdown' ? 500 : 0);
     
@@ -520,10 +453,8 @@ function showGuestMode() {
     console.log('💁 Affichage du nom:', guestName);
     document.getElementById('guestName').textContent = guestName;
     
-    // Afficher l'heure actuelle sous le nom (mise à jour dynamique)
     updateCurrentTime();
     
-    // Date de checkout dans le footer
     if (currentReservation) {
         const checkoutDate = formatDate(currentReservation.endDate, currentLanguage);
         const checkoutTime = currentReservation.checkoutHour ? 
@@ -546,13 +477,11 @@ function showGuestMode() {
 function showCountdownMode() {
     currentMode = 'countdown';
     
-    // Fade out du guest view si actif
     const guestView = document.getElementById('guestView');
     if (guestView.classList.contains('active')) {
         guestView.classList.remove('active');
     }
     
-    // Attendre la fin du fade out avant d'afficher countdown
     setTimeout(() => {
         guestView.style.display = 'none';
         
@@ -573,11 +502,11 @@ function displayActivities() {
     const grid = document.getElementById('activityGrid');
     grid.innerHTML = '';
     
+    // Afficher les 4 premières activités
     activities.slice(0, 4).forEach(activity => {
         const card = document.createElement('div');
         card.className = 'activity-card-modern';
         
-        // Date de l'événement (style checkout)
         let eventDate = '';
         if (!activity.isPermanent && activity.startDate && activity.endDate) {
             const startDay = activity.startDate.getDate();
@@ -606,88 +535,100 @@ function displayActivities() {
         grid.appendChild(card);
     });
     
-    if (activities.length > 4) startActivityRotation();
-    setTimeout(() => startActivityHighlightAnimation(), 1000);
+    // Démarrer la rotation Option 4 si plus de 4 activités
+    if (activities.length > 4) {
+        startActivityRotation();
+    }
 }
+
+// ==================== OPTION 4 : SHUFFLE ALÉATOIRE - PRODUCTION ====================
 
 let activityRotationIndex = 4;
 let activityRotationInterval = null;
-let currentHighlightIndex = 0;
-let highlightInterval = null;
 
-function startActivityHighlightAnimation() {
-    if (highlightInterval) clearInterval(highlightInterval);
-    
-    const cards = document.querySelectorAll('.activity-card-modern');
-    if (cards.length === 0) return;
-    
-    currentHighlightIndex = 0;
-    
-    const highlightCard = () => {
-        cards.forEach(card => {
-            card.style.transform = 'translateY(0)';
-            card.style.borderColor = 'rgba(0, 212, 255, 0.3)';
-            card.style.boxShadow = 'none';
-        });
-        
-        if (cards[currentHighlightIndex]) {
-            cards[currentHighlightIndex].style.transform = 'translateY(-5px)';
-            cards[currentHighlightIndex].style.borderColor = '#00d4ff';
-            cards[currentHighlightIndex].style.boxShadow = '0 10px 40px rgba(0, 212, 255, 0.3)';
-        }
-        
-        currentHighlightIndex = (currentHighlightIndex + 1) % cards.length;
-    };
-    
-    highlightCard();
-    highlightInterval = setInterval(highlightCard, 3000);
-}
+// ⚙️ CONFIGURATION DE LA ROTATION
+// Pour changer la vitesse ou le nombre de tuiles, modifiez ces valeurs :
+const ROTATION_SPEED = 5000;     // Vitesse en millisecondes (5000 = 5 secondes)
+const CARDS_TO_CHANGE = 2;        // Nombre de tuiles qui changent (2 = deux tuiles aléatoires)
+const FADE_DURATION = 500;        // Durée du fade in/out (500 = 0.5 seconde)
 
 function startActivityRotation() {
-    if (activityRotationInterval) clearInterval(activityRotationInterval);
+    // Arrêter l'intervalle précédent s'il existe
+    if (activityRotationInterval) {
+        clearInterval(activityRotationInterval);
+    }
+    
+    console.log(`🎲 Option 4 activée : ${CARDS_TO_CHANGE} tuiles changent toutes les ${ROTATION_SPEED / 1000} secondes`);
     
     activityRotationInterval = setInterval(() => {
         const cards = document.querySelectorAll('.activity-card-modern');
+        
         if (cards.length >= 4 && activities.length > 4) {
-            const lastCard = cards[3];
-            lastCard.style.opacity = '0';
             
+            // ÉTAPE 1 : Choisir N positions aléatoires
+            const positions = [0, 1, 2, 3];
+            const randomPositions = [];
+            
+            for (let i = 0; i < CARDS_TO_CHANGE; i++) {
+                const randIndex = Math.floor(Math.random() * positions.length);
+                randomPositions.push(positions[randIndex]);
+                positions.splice(randIndex, 1);
+            }
+            
+            console.log(`  🎯 Changement positions: ${randomPositions.join(', ')}`);
+            
+            // ÉTAPE 2 : Fade out des tuiles choisies
+            randomPositions.forEach(pos => {
+                cards[pos].style.transition = `all ${FADE_DURATION}ms ease`;
+                cards[pos].style.opacity = '0';
+                cards[pos].style.transform = 'scale(0.95)';
+            });
+            
+            // ÉTAPE 3 : Changer le contenu après le fade out
             setTimeout(() => {
-                activityRotationIndex = activityRotationIndex % activities.length;
-                const activity = activities[activityRotationIndex];
-                
-                // Date de l'événement (style checkout)
-                let eventDate = '';
-                if (!activity.isPermanent && activity.startDate && activity.endDate) {
-                    const startDay = activity.startDate.getDate();
-                    const endDay = activity.endDate.getDate();
-                    const month = activity.startDate.toLocaleDateString('fr-FR', { month: 'long' });
+                randomPositions.forEach(pos => {
+                    activityRotationIndex = activityRotationIndex % activities.length;
+                    const activity = activities[activityRotationIndex];
                     
-                    eventDate = `<div class="event-date">du ${startDay} au ${endDay} ${month}</div>`;
-                }
-                
-                const details = [];
-                if (activity.description) details.push(activity.description);
-                if (activity.distance) details.push(activity.distance);
-                if (activity.hours) details.push(activity.hours);
-                
-                lastCard.innerHTML = `
-                    <div class="activity-header">
-                        <div class="activity-icon-modern">${activity.icon}</div>
-                        <div class="activity-title">${activity.name}</div>
-                    </div>
-                    ${eventDate}
-                    <div class="activity-description">
-                        ${details.join(' • ')}
-                    </div>
-                `;
-                
-                lastCard.style.opacity = '1';
-                activityRotationIndex++;
-            }, 500);
+                    // Date de l'événement
+                    let eventDate = '';
+                    if (!activity.isPermanent && activity.startDate && activity.endDate) {
+                        const startDay = activity.startDate.getDate();
+                        const endDay = activity.endDate.getDate();
+                        const month = activity.startDate.toLocaleDateString('fr-FR', { month: 'long' });
+                        
+                        eventDate = `<div class="event-date">du ${startDay} au ${endDay} ${month}</div>`;
+                    }
+                    
+                    const details = [];
+                    if (activity.description) details.push(activity.description);
+                    if (activity.distance) details.push(activity.distance);
+                    if (activity.hours) details.push(activity.hours);
+                    
+                    // Mettre à jour le contenu
+                    cards[pos].innerHTML = `
+                        <div class="activity-header">
+                            <div class="activity-icon-modern">${activity.icon}</div>
+                            <div class="activity-title">${activity.name}</div>
+                        </div>
+                        ${eventDate}
+                        <div class="activity-description">
+                            ${details.join(' • ')}
+                        </div>
+                    `;
+                    
+                    // Fade in
+                    cards[pos].style.opacity = '1';
+                    cards[pos].style.transform = 'scale(1)';
+                    
+                    activityRotationIndex++;
+                });
+            }, FADE_DURATION);
         }
-    }, 8000);
+    }, ROTATION_SPEED);
 }
+
+// ==================== FIN OPTION 4 ====================
 
 function updateCountdown() {
     if (!nextReservation) return;
@@ -695,7 +636,6 @@ function updateCountdown() {
     const now = new Date();
     let target = new Date(nextReservation.startDate);
     
-    // Si checkin aujourd'hui, ajouter l'heure de checkin
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     if (target.getTime() === today.getTime() && nextReservation.checkinHour) {
         const hours = Math.floor(nextReservation.checkinHour);
@@ -724,12 +664,10 @@ function updateCountdown() {
 function updateTime() {
     const now = new Date();
     
-    // Mettre à jour la date complète dans le header
     document.getElementById('fullDate').textContent = now.toLocaleDateString('fr-FR', { 
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
     });
     
-    // Mettre à jour l'heure actuelle sous le nom
     updateCurrentTime();
 }
 
@@ -749,7 +687,6 @@ function parseDate(dateString) {
     
     const str = String(dateString);
     
-    // Format Google Sheets Date()
     if (str.includes('Date(')) {
         const match = str.match(/Date\((\d+),(\d+),(\d+)\)/);
         if (match) {
@@ -757,12 +694,10 @@ function parseDate(dateString) {
         }
     }
     
-    // Format numérique
     if (!isNaN(dateString) && typeof dateString === 'number') {
         return new Date((dateString - 25569) * 86400 * 1000);
     }
     
-    // Format JJ/MM/AAAA
     if (str.includes('/')) {
         const parts = str.split('/');
         if (parts.length === 3) {
@@ -775,7 +710,6 @@ function parseDate(dateString) {
         }
     }
     
-    // Format ISO
     if (str.includes('-')) {
         return new Date(str);
     }
