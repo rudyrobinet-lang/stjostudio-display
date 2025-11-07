@@ -535,6 +535,9 @@ function displayActivities() {
         grid.appendChild(card);
     });
     
+    // Mémoriser les 4 activités visibles (indices 0..3) pour éviter les doublons ensuite
+    visibleActivityIndices = activities.slice(0, 4).map((_, i) => i);
+
     // Démarrer la rotation Option 4 si plus de 4 activités
     if (activities.length > 4) {
         startActivityRotation();
@@ -546,11 +549,28 @@ function displayActivities() {
 let activityRotationIndex = 4;
 let activityRotationInterval = null;
 
+// Suivi des activités actuellement affichées par carte (0..3)
+let visibleActivityIndices = [];
+
 // ⚙️ CONFIGURATION DE LA ROTATION
 // Pour changer la vitesse ou le nombre de tuiles, modifiez ces valeurs :
 const ROTATION_SPEED = 5000;     // Vitesse en millisecondes (5000 = 5 secondes)
-const CARDS_TO_CHANGE = 2;        // Nombre de tuiles qui changent (2 = deux tuiles aléatoires)
-const FADE_DURATION = 500;        // Durée du fade in/out (500 = 0.5 seconde)
+const CARDS_TO_CHANGE = 2;       // Nombre de tuiles qui changent (2 = deux tuiles aléatoires)
+const FADE_DURATION = 500;       // Durée du fade in/out (500 = 0.5 seconde)
+
+// Renvoie le prochain index d’activité non présent dans 'excluded'
+function getNextAvailableIndex(excluded) {
+    if (!activities || activities.length === 0) return -1;
+    let tries = 0;
+    while (tries < activities.length) {
+        activityRotationIndex = activityRotationIndex % activities.length;
+        const candidate = activityRotationIndex;
+        activityRotationIndex++;
+        if (!excluded.has(candidate)) return candidate;
+        tries++;
+    }
+    return -1; // pas de candidat sans doublon
+}
 
 function startActivityRotation() {
     // Arrêter l'intervalle précédent s'il existe
@@ -564,7 +584,6 @@ function startActivityRotation() {
         const cards = document.querySelectorAll('.activity-card-modern');
         
         if (cards.length >= 4 && activities.length > 4) {
-            
             // ÉTAPE 1 : Choisir N positions aléatoires
             const positions = [0, 1, 2, 3];
             const randomPositions = [];
@@ -584,27 +603,48 @@ function startActivityRotation() {
                 cards[pos].style.transform = 'scale(0.95)';
             });
             
-            // ÉTAPE 3 : Changer le contenu après le fade out
+            // ÉTAPE 3 : Changer le contenu après le fade out en évitant les doublons
             setTimeout(() => {
+                // Ensemble des indices visibles actuels + ceux choisis pendant ce tour
+                const chosenThisRound = new Set();
+                const currentlyVisible = new Set(visibleActivityIndices);
+
                 randomPositions.forEach(pos => {
-                    activityRotationIndex = activityRotationIndex % activities.length;
-                    const activity = activities[activityRotationIndex];
-                    
+                    // Exclure ce qui est déjà visible + déjà choisi dans ce cycle
+                    const excluded = new Set([...currentlyVisible, ...chosenThisRound]);
+
+                    // Chercher une activité non visible et non déjà choisie ce tour
+                    let nextIdx = getNextAvailableIndex(excluded);
+
+                    // Cas limite : pas assez d'activités uniques
+                    // Autoriser un fallback différent de l'activité déjà sur cette tuile
+                    if (nextIdx === -1) {
+                        const fallbackExcluded = new Set([visibleActivityIndices[pos]]);
+                        nextIdx = getNextAvailableIndex(fallbackExcluded);
+                        if (nextIdx === -1) {
+                            // Rien de propre à faire, on ré-affiche l’ancienne tuile
+                            cards[pos].style.opacity = '1';
+                            cards[pos].style.transform = 'scale(1)';
+                            return;
+                        }
+                    }
+
+                    const activity = activities[nextIdx];
+
                     // Date de l'événement
                     let eventDate = '';
                     if (!activity.isPermanent && activity.startDate && activity.endDate) {
                         const startDay = activity.startDate.getDate();
                         const endDay = activity.endDate.getDate();
                         const month = activity.startDate.toLocaleDateString('fr-FR', { month: 'long' });
-                        
                         eventDate = `<div class="event-date">du ${startDay} au ${endDay} ${month}</div>`;
                     }
-                    
+
                     const details = [];
                     if (activity.description) details.push(activity.description);
                     if (activity.distance) details.push(activity.distance);
                     if (activity.hours) details.push(activity.hours);
-                    
+
                     // Mettre à jour le contenu
                     cards[pos].innerHTML = `
                         <div class="activity-header">
@@ -616,12 +656,16 @@ function startActivityRotation() {
                             ${details.join(' • ')}
                         </div>
                     `;
-                    
+
                     // Fade in
                     cards[pos].style.opacity = '1';
                     cards[pos].style.transform = 'scale(1)';
-                    
-                    activityRotationIndex++;
+
+                    // Mettre à jour les ensembles d’état
+                    chosenThisRound.add(nextIdx);
+                    currentlyVisible.delete(visibleActivityIndices[pos]); // l'ancienne activité à cette position n'est plus visible
+                    currentlyVisible.add(nextIdx);                       // la nouvelle devient visible
+                    visibleActivityIndices[pos] = nextIdx;               // mémoriser le mapping position -> activité
                 });
             }, FADE_DURATION);
         }
