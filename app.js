@@ -554,8 +554,8 @@ let visibleActivityIndices = [];
 
 // ⚙️ CONFIGURATION DE LA ROTATION
 // Pour changer la vitesse ou le nombre de tuiles, modifiez ces valeurs :
-const ROTATION_SPEED = 5000;     // Vitesse en millisecondes (5000 = 5 secondes)
-const CARDS_TO_CHANGE = 2;       // Nombre de tuiles qui changent (2 = deux tuiles aléatoires)
+const ROTATION_SPEED = 10000;     // Vitesse en millisecondes (5000 = 5 secondes)
+const CARDS_TO_CHANGE = 1;       // Nombre de tuiles qui changent (2 = deux tuiles aléatoires)
 const FADE_DURATION = 500;       // Durée du fade in/out (500 = 0.5 seconde)
 
 // Renvoie le prochain index d’activité non présent dans 'excluded'
