@@ -1,4 +1,4 @@
-# 🏠 St-Jo'Studio - Affichage Digital Signage
+# 🏠 St-Jo'Studio - Affichage Digital Signage #
 
 Application d'affichage pour votre Airbnb avec informations personnalisées pour vos voyageurs.
 
