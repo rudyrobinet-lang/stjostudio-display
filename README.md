@@ -310,3 +310,8 @@ Votre affichage St-Jo'Studio est maintenant opérationnel.
 Bon séjour à vos invités ! 🏠✨
 
 Test webhook - 04/11/2025
+
+## License
+
+This project is licensed under the MIT License.
+© 2025 Rudy Robinet.
